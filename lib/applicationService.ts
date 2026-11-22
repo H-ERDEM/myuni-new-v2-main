@@ -248,7 +248,11 @@ export async function listApplicationsForAdmin(filters: {
   status?: ApplicationStatus;
   contextId?: string;
   limit?: number;
-}) {
+}): Promise<{
+  applications: ApplicationRecord[];
+  statusCounts: Record<string, number>;
+  contextCounts: Record<string, number>;
+}> {
   const limit = Math.min(filters.limit || 100, 500);
 
   let query = supabaseAdmin
@@ -264,7 +268,7 @@ export async function listApplicationsForAdmin(filters: {
   const { data, error } = await query;
   if (error) {
     console.error('[applicationService] listApplicationsForAdmin:', error);
-    return [];
+    return { applications: [], statusCounts: {}, contextCounts: {} };
   }
 
   const { data: counts } = await supabaseAdmin

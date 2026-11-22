@@ -355,7 +355,7 @@ export function MyUNIVideo({
     } finally {
       progressSaveInFlightRef.current = false;
     }
-  }, [userId, contentId, userProgress?.video_watch_count, getTableNames, type]);
+  }, [userId, contentId, userProgress?.video_watch_count, type]);
 
   // Initialize Vimeo Player - only when needed
   const initializePlayer = useCallback(async () => {
@@ -510,7 +510,7 @@ export function MyUNIVideo({
       setError(`Failed to initialize video player: ${err}`);
       initializationRef.current = false;
     }
-  }, [currentVideo, userProgress.last_position_seconds, userProgress.is_completed, completionThreshold, onProgress, onComplete, userId, contentId, saveProgressToDb]);
+  }, [currentVideo, userProgress, playerInitialized, completionThreshold, onProgress, onComplete, userId, contentId, saveProgressToDb]);
 
   // Load Vimeo API
   useEffect(() => {

@@ -52,7 +52,9 @@ export async function POST(request: NextRequest) {
 
     const { data: event, error: eventError } = await supabaseAdmin
       .from('myuni_events')
-      .select('*')
+      .select(
+        'id, title, slug, description, start_date, end_date, is_online, meeting_url, location_name, organizer_name, status, is_active, is_registration_open, registration_deadline, max_attendees'
+      )
       .eq('id', eventId)
       .eq('is_active', true)
       .single();

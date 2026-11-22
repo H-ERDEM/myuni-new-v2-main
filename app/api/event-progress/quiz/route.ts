@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await saveEventQuizResult(userId, sectionId, quickId, score);
-    return NextResponse.json({ success: true, ...data });
+    return NextResponse.json(data);
   } catch (error) {
     console.error('POST /api/event-progress/quiz error:', error);
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });

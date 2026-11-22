@@ -217,14 +217,6 @@ export default function PersonalizedEducationRecommendation({
     }));
   }, [steps]);
 
-  const handleNext = useCallback(() => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      handleComplete();
-    }
-  }, [currentStep, steps.length]);
-
   const handleBack = useCallback(() => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
@@ -409,6 +401,14 @@ export default function PersonalizedEducationRecommendation({
       alert(t.errorLoadingCourses);
     }
   }, [preferences, calculateRecommendations, onRecommendation, loadingCourses, coursesError, t.errorLoadingCourses]);
+
+  const handleNext = useCallback(() => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      handleComplete();
+    }
+  }, [currentStep, steps.length, handleComplete]);
 
   // Güvenlik: Keyboard event handler
   const handleKeyDown = useCallback((event: React.KeyboardEvent) => {

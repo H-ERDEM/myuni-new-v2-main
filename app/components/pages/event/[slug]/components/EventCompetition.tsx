@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, CheckCircle, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -36,6 +36,13 @@ export const EventCompetition: React.FC<EventCompetitionProps> = ({
   const [timeLeft, setTimeLeft] = useState(durationMinutes * 60);
   const [isFinished, setIsFinished] = useState(false);
 
+  const handleFinish = useCallback(() => {
+    setIsFinished(true);
+    const timeTakenSeconds = (durationMinutes * 60) - timeLeft;
+    // Puanlama burada sunucu tarafında yapılmalı ideal olarak ama demo amaçlı
+    onComplete(0, timeTakenSeconds, answers); // Gerçek puanlama server'da
+  }, [answers, durationMinutes, onComplete, timeLeft]);
+
   // Sayaç mantığı
   useEffect(() => {
     if (!started || isFinished || timeLeft <= 0) return;
@@ -52,7 +59,7 @@ export const EventCompetition: React.FC<EventCompetitionProps> = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [started, isFinished, timeLeft]);
+  }, [started, isFinished, timeLeft, handleFinish]);
 
   const handleStart = () => {
     setStarted(true);
@@ -67,13 +74,6 @@ export const EventCompetition: React.FC<EventCompetitionProps> = ({
 
   const currentQuestion = questions[currentQuestionIndex];
   const answeredCount = Object.keys(answers).length;
-
-  const handleFinish = () => {
-    setIsFinished(true);
-    const timeTakenSeconds = (durationMinutes * 60) - timeLeft;
-    // Puanlama burada sunucu tarafında yapılmalı ideal olarak ama demo amaçlı
-    onComplete(0, timeTakenSeconds, answers); // Gerçek puanlama server'da
-  };
 
   if (!started) {
     return (

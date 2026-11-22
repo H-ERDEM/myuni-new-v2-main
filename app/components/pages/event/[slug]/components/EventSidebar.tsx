@@ -239,7 +239,7 @@ const EventSidebar: React.FC<EventSidebarProps> = ({
 
       // Mevcut etkinlik hariç, sitede aktif etkinlikleri göster (kayıt kapalı olsa da)
       const validEvents = events
-        .filter((eventItem: Event) =>
+        .filter((eventItem) =>
           eventItem.id !== event.id &&
           eventItem.is_active &&
           eventItem.slug &&
@@ -249,7 +249,7 @@ const EventSidebar: React.FC<EventSidebarProps> = ({
 
       // Her etkinlik için dinamik katılımcı sayısını hesapla
       const eventsWithDynamicCount = await Promise.all(
-        validEvents.map(async (eventItem: Event) => {
+        validEvents.map(async (eventItem) => {
           try {
             const attendeeCount = await getEventAttendeeCount(eventItem.id);
             return {
@@ -428,7 +428,6 @@ const EventSidebar: React.FC<EventSidebarProps> = ({
   };
 
   const handleRegistrationError = (error: string) => {
-    // eslint-disable-next-line no-console
     console.error('Registration error:', error);
     alert(error);
   };

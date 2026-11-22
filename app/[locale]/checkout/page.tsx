@@ -663,7 +663,7 @@ function CheckoutContent({ params }: CheckoutPageProps) {
       }
     }
     
-  }, [searchParams, isLoaded, user, router, locale, fetchCourseData, fetchProductData, fetchPackageData, fetchTierData, fetchMembershipData]);
+  }, [searchParams, isLoaded, user, router, locale, fetchCourseData, fetchProductData, fetchPackageData, fetchTierData, fetchMembershipData, t.referralCodeApplied]);
 
   // Early bird countdown timer
   useEffect(() => {

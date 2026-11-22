@@ -3,6 +3,7 @@ import {
   getUnilabBlogPostBySlug,
   getUnilabRelatedBlogPosts,
   getCurrentSite,
+  type MyUniBlogPost,
   type SiteType
 } from '@/app/services/unilabBlogService';
 
@@ -35,7 +36,7 @@ export async function GET(
       );
     }
 
-    let relatedPosts = [];
+    let relatedPosts: MyUniBlogPost[] = [];
     if (includeRelated) {
       relatedPosts = await getUnilabRelatedBlogPosts(post, locale, 3, site);
     }

@@ -19,7 +19,7 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Certificate number required' }, { status: 400 });
     }
 
-    let data =
+    const data =
       (await getCertificateByNumber(certificateNumber).catch(() => null)) ||
       (await getMyUNICertificateByNumber(certificateNumber).catch(() => null)) ||
       (await getMyUNIEventCertificateByNumber(certificateNumber).catch(() => null));

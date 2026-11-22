@@ -103,7 +103,7 @@ export default function AIChatSidebar({
   const [isDragging, setIsDragging] = useState(false);
 
   // Type-specific prompts
-  const getSuggestedPrompts = () => {
+  const getSuggestedPrompts = React.useCallback(() => {
     const basePrompts = [
       {
         icon: <Lightbulb className="w-4 h-4" />,
@@ -128,9 +128,9 @@ export default function AIChatSidebar({
     ];
 
     return basePrompts;
-  };
+  }, [type]);
 
-  const suggestedPrompts = React.useMemo(() => getSuggestedPrompts(), [type]);
+  const suggestedPrompts = React.useMemo(() => getSuggestedPrompts(), [getSuggestedPrompts]);
 
   // Device type check
   useEffect(() => {

@@ -18,8 +18,9 @@
     "gift:product": "node --env-file-if-exists=.env.local scripts/grant-product-gifts.mjs",
     "test:membership-expiry": "node lib/membershipTime.test.mjs",
     "test:supabase-routing": "node --test lib/supabase/tableDatabase.test.mjs",
+    "typecheck": "tsc --noEmit --incremental false",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@clerk/nextjs": "^6.18.5",

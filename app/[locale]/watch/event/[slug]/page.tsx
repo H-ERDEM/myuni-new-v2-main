@@ -494,7 +494,7 @@ export default function EventWatchPage({ params }: EventWatchPageProps) {
     } finally {
       setLoading(false);
     }
-  }, [eventSlug, user, loading, t.enrollmentRequired, t.invalidEventData, t.dataLoadError, transformEventData]);
+  }, [eventSlug, user, loading, searchParams, t.enrollmentRequired, t.invalidEventData, t.dataLoadError, transformEventData]);
 
   useEffect(() => {
     if (isLoaded && user && !dataFetched) {

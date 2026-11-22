@@ -16,6 +16,30 @@ export type CertificateData = {
   userFullName?: string;
 };
 
+export interface CertificateRecord {
+  id: string;
+  certificate_number: string;
+  user_id: string;
+  course_id?: string;
+  event_id?: string;
+  student_full_name: string;
+  course_name?: string;
+  event_name?: string;
+  instructor_name?: string;
+  organizer_name?: string;
+  course_duration?: string;
+  event_duration?: string;
+  organization_name: string;
+  organization_description: string;
+  instructor_bio?: string;
+  certificate_url: string | null;
+  certificate_metadata: object;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  issue_date?: string;
+}
+
 export type EligibilityCheck = {
   isEligible: boolean;
   completedLessons: number;
@@ -24,7 +48,7 @@ export type EligibilityCheck = {
   totalQuizzes: number;
   averageQuizScore: number;
   missingRequirements: string[];
-  existingCertificate?: unknown;
+  existingCertificate?: CertificateRecord;
   hasException?: boolean;
   completionPercentage?: number;
   paymentStatus?: 'none' | 'pending' | 'paid';
@@ -71,7 +95,7 @@ export async function getUserEventCertificate(_userId: string, eventId: string) 
   return json.data ?? null;
 }
 
-export async function generateCertificate(data: CertificateData) {
+export async function generateCertificate(data: CertificateData): Promise<CertificateRecord> {
   const res = await fetch('/api/certificates/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -88,7 +112,7 @@ export async function generateCertificate(data: CertificateData) {
     }),
   });
   const json = await parseJson(res);
-  return json.data;
+  return json.data as CertificateRecord;
 }
 
 export async function generateCertificateWithProgress(data: CertificateData) {

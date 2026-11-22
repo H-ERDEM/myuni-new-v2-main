@@ -137,7 +137,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   };
 
   // Kalan süreyi hesapla
-  const getTimeRemaining = () => {
+  const getTimeRemaining = useCallback(() => {
     if (!course.early_bird_deadline) return null;
     
     const now = new Date();
@@ -152,24 +152,24 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
     
     return { days, hours, minutes, seconds, total: diff };
-  };
+  }, [course.early_bird_deadline]);
 
   // Fiyat hesaplamaları
   const activePrice = getActivePrice();
   const isEarlyBird = isEarlyBirdActive();
-  const timeRemaining = getTimeRemaining();
-  
   // Countdown için timer
   useEffect(() => {
-    if (isEarlyBird && timeRemaining) {
-      setCountdown(timeRemaining);
-      
-      const timer = setInterval(() => {
+    if (isEarlyBird) {
+      const updateCountdown = () => {
         const newTimeRemaining = getTimeRemaining();
-        if (newTimeRemaining) {
-          setCountdown(newTimeRemaining);
-        } else {
-          setCountdown(null);
+        setCountdown(newTimeRemaining);
+        return newTimeRemaining;
+      };
+
+      if (!updateCountdown()) return;
+
+      const timer = setInterval(() => {
+        if (!updateCountdown()) {
           clearInterval(timer);
         }
       }, 1000);
@@ -178,7 +178,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
     } else {
       setCountdown(null);
     }
-  }, [isEarlyBird, course.early_bird_deadline]);
+  }, [isEarlyBird, getTimeRemaining]);
   
   // Debug - Course object'i kontrol edelim
   console.log('=== COURSE SIDEBAR COURSE DATA ===');

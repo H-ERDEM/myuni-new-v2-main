@@ -265,7 +265,7 @@ export default function EventSidebar({
         totalLessons: eventWithProgress.totalLessons
       });
     }
-  }, [eventWithProgress?.progress, eventWithProgress?.completedLessons, eventWithProgress?.totalLessons]);
+  }, [eventWithProgress]);
 
   // Device detection
   useEffect(() => {

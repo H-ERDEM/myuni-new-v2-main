@@ -194,7 +194,7 @@ export async function generateMetadata({
         ...(courseData?.duration && {
           "timeRequired": courseData.duration
         }),
-        ...(courseData?.learning_outcomes && {
+        ...(Boolean(courseData?.learning_outcomes) && {
           "coursePrerequisites": locale === 'tr' ? "Temel bilgisayar kullanımı" : "Basic computer skills",
           "educationalCredentialAwarded": locale === 'tr' ? "MyUNI Tamamlama Sertifikası" : "MyUNI Completion Certificate"
         }),

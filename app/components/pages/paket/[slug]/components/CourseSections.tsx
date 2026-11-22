@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Play, BookOpen, ChevronDown, ChevronUp, Clock, FileText, Video, Award } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import VideoPreviewModal from './VideoPreviewModal'; // Modal'ı import et
 
 // Interfaces
@@ -200,7 +201,7 @@ const CourseSections: React.FC<CourseSectionsProps> = ({
                   {/* Thumbnail */}
                   <div className="flex-shrink-0 w-16 h-12 sm:w-24 sm:h-16 bg-neutral-100 dark:bg-neutral-700 rounded-sm overflow-hidden relative">
                     {course.thumbnail_url ? (
-                      <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover" />
+                      <Image src={course.thumbnail_url} alt={course.title} fill sizes="(min-width: 640px) 96px, 64px" className="object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-neutral-400">
                         <Video className="w-6 h-6" />

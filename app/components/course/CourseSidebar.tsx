@@ -69,12 +69,7 @@ interface CourseSidebarProps {
 }
 
 interface Certificate {
-  id: string;
   certificate_number: string;
-  user_id: string;
-  course_id: string;
-  issued_at: string;
-  status: 'active' | 'revoked';
 }
 
 interface LessonProgress {
@@ -187,6 +182,7 @@ export default function CourseSidebar({
   // Refs
   const sidebarRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
+  const handleGenerateCertificateRef = useRef<() => Promise<void>>(async () => {});
 
   // Load user progress
   const loadUserProgress = useCallback(async () => {
@@ -552,6 +548,8 @@ export default function CourseSidebar({
     }
   };
 
+  handleGenerateCertificateRef.current = handleGenerateCertificate;
+
   // Auto-generate certificate when progress reaches 100%
   useEffect(() => {
     if (courseWithProgress?.progress === 100 && userId && !existingCertificate && !generating && certificateChecked) {
@@ -559,7 +557,7 @@ export default function CourseSidebar({
       
       // Small delay to ensure all state is properly updated before generating
       const timer = setTimeout(() => {
-        handleGenerateCertificate();
+        handleGenerateCertificateRef.current();
       }, 1500);
       
       return () => clearTimeout(timer);

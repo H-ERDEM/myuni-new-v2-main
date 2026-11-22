@@ -26,6 +26,7 @@ interface DigitalProduct {
   product_content: string | null;  // PDF / içerik URL
   brand_name: string | null;
   brand_logo_url: string | null;
+  product_info?: Record<string, unknown> | null;
   is_active: boolean;
   created_at: string;
 }
@@ -44,7 +45,6 @@ const texts = {
     price: 'Fiyat',
     info: 'Açıklama',
     home: 'Ana Sayfa',
-    collection: 'Koleksiyon',
     buyError: 'Satın alma linki henüz eklenmemiş.',
     copied: 'Kopyalandı',
     types: {
@@ -291,7 +291,7 @@ export default function CollectionDetailPage({
                               slug: product.slug
                             }} 
                             locale={locale}
-                            variant="secondary"
+                            variant="outline"
                             className="w-full py-3 rounded-xl font-medium shadow-sm"
                           />
                         </>

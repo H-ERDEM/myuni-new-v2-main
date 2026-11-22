@@ -158,7 +158,7 @@ function validateResponse(text: string): { isValid: boolean; cleanedText: string
     return { isValid: false, cleanedText: '', error: 'Boş yanıt' };
   }
 
-  let cleaned = text.trim();
+  const cleaned = text.trim();
 
   // Çok kısa yanıtları reddet
   if (cleaned.length < 10) {

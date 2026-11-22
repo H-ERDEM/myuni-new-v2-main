@@ -78,14 +78,6 @@ const EventForm: React.FC<EventFormProps> = ({
     registration_deadline: event.registration_deadline,
   });
 
-  React.useEffect(() => {
-    if (isSignedIn && user && event.id) {
-      checkRegistrationStatus();
-    } else {
-      setCheckingRegistration(false);
-    }
-  }, [isSignedIn, user, event.id]);
-
   // Katılımcı sayısını dinamik olarak güncelle
   const updateAttendeeCount = async () => {
     try {
@@ -97,7 +89,7 @@ const EventForm: React.FC<EventFormProps> = ({
     }
   };
 
-  const checkRegistrationStatus = async () => {
+  const checkRegistrationStatus = React.useCallback(async () => {
     try {
       setCheckingRegistration(true);
       if (!user?.id) {
@@ -115,7 +107,15 @@ const EventForm: React.FC<EventFormProps> = ({
     } finally {
       setCheckingRegistration(false);
     }
-  };
+  }, [event.id, user?.id]);
+
+  React.useEffect(() => {
+    if (isSignedIn && user && event.id) {
+      checkRegistrationStatus();
+    } else {
+      setCheckingRegistration(false);
+    }
+  }, [checkRegistrationStatus, event.id, isSignedIn, user]);
 
   const handleRegistration = async () => {
     // Always enforce registration gate before form redirect or free enroll

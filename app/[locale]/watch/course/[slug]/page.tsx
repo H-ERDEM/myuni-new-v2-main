@@ -86,7 +86,7 @@ interface Lesson {
 interface UserProgress {
   lesson_id: string;
   is_completed: boolean;
-  completed_at: string;
+  completed_at?: string;
   watch_time_seconds: number;
   last_position_seconds: number;
 }

@@ -41,12 +41,6 @@ const nextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   serverExternalPackages: ['iyzipay'],
   webpack: (config: any, { isServer }: { isServer: boolean }) => {
     // react-pdf (pdfjs-dist) canvas paketini isteğe bağlı arar, ancak tarayıcıda bulunmadığı için Next.js derlemesi hata verir.

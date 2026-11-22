@@ -3,6 +3,14 @@
  * userId args are kept for call-site compatibility and ignored.
  */
 
+export interface UserCourseProgress {
+  lesson_id: string;
+  is_completed: boolean;
+  watch_time_seconds: number;
+  last_position_seconds: number;
+  completed_at?: string;
+}
+
 async function parseJson(res: Response) {
   const json = await res.json().catch(() => ({}));
   if (!res.ok || json.success === false) {
@@ -11,10 +19,13 @@ async function parseJson(res: Response) {
   return json;
 }
 
-export async function getUserCourseProgress(_userId: string, courseId: string) {
+export async function getUserCourseProgress(
+  _userId: string,
+  courseId: string
+): Promise<UserCourseProgress[]> {
   const res = await fetch(`/api/progress/me?courseId=${encodeURIComponent(courseId)}`);
   const json = await parseJson(res);
-  return json.data || [];
+  return Array.isArray(json.data) ? (json.data as UserCourseProgress[]) : [];
 }
 
 export async function getUserLessonProgress(_userId: string, lessonId: string) {

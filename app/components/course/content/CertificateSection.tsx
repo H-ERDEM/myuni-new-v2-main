@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Award, Download, ExternalLink, CheckCircle, Calendar, User, BookOpen, Clock } from 'lucide-react';
 import { generateCertificate, checkCertificateEligibility } from '../../../../lib/certificateApi';
-import type { EligibilityCheck } from '../../../../lib/certificateApi';
+import type { CertificateRecord, EligibilityCheck } from '../../../../lib/certificateApi';
 
 interface CertificateSectionProps {
   courseId: string;
@@ -15,32 +15,7 @@ interface CertificateSectionProps {
   onCertificateGenerated?: (certificateNumber: string) => void;
 }
 
-interface Certificate {
-  id: string;
-  certificate_number: string;
-  user_id: string;
-  course_id?: string;
-  event_id?: string;
-  student_full_name: string;
-  course_name?: string;
-  event_name?: string;
-  instructor_name?: string;
-  organizer_name?: string;
-  course_duration?: string;
-  event_duration?: string;
-  organization_name: string;
-  organization_description: string;
-  instructor_bio?: string;
-  certificate_url: string | null;
-  certificate_metadata: object;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  issue_date?: string;
-}
-
-type CourseCertificate = Certificate;
-type EventCertificate = Certificate;
+type Certificate = CertificateRecord;
 
 export function CertificateSection({ 
   courseId, 
@@ -53,29 +28,29 @@ export function CertificateSection({
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [certificate, setCertificate] = useState<Certificate | CourseCertificate | EventCertificate | null>(null);
+  const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [eligibility, setEligibility] = useState<EligibilityCheck | null>(null);
 
   // Helper functions to handle different certificate types
-  const getCertificateName = (cert: Certificate | CourseCertificate | EventCertificate) => {
+  const getCertificateName = (cert: Certificate) => {
     if ('course_name' in cert) return cert.course_name;
     if ('event_name' in cert) return cert.event_name;
     return '';
   };
 
-  const getInstructorName = (cert: Certificate | CourseCertificate | EventCertificate) => {
+  const getInstructorName = (cert: Certificate) => {
     if ('instructor_name' in cert) return cert.instructor_name;
     if ('organizer_name' in cert) return cert.organizer_name;
     return '';
   };
 
-  const getDuration = (cert: Certificate | CourseCertificate | EventCertificate) => {
+  const getDuration = (cert: Certificate) => {
     if ('course_duration' in cert) return cert.course_duration;
     if ('event_duration' in cert) return cert.event_duration;
     return '';
   };
 
-  const getIssueDate = (cert: Certificate | CourseCertificate | EventCertificate) => {
+  const getIssueDate = (cert: Certificate) => {
     if ('issue_date' in cert && cert.issue_date) return cert.issue_date;
     return cert.created_at;
   };

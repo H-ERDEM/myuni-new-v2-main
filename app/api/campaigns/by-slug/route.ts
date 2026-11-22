@@ -27,6 +27,10 @@ type CampaignRow = {
   campaign_description_en?: string | null;
 };
 
+function asCampaignRows(value: unknown): CampaignRow[] {
+  return Array.isArray(value) ? (value as CampaignRow[]) : [];
+}
+
 function createSlug(name: string | null | undefined): string {
   if (!name || typeof name !== 'string') return '';
   return name
@@ -116,7 +120,7 @@ export async function GET(request: NextRequest) {
       }
 
       campaign =
-        ((campaigns || []) as CampaignRow[]).find((c) => {
+        asCampaignRows(campaigns).find((c) => {
           if (!c.campaign_name) return false;
           return createSlug(c.campaign_name) === slug;
         }) || null;
@@ -145,7 +149,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: {
         campaign,
-        related: (related || []) as CampaignRow[],
+        related: asCampaignRows(related),
       },
     });
   } catch (error) {

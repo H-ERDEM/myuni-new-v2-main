@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { recalculateEnrollmentProgress } from '@/lib/enrollmentProgress';
 
 /**
  * POST /api/enrollments — enroll authenticated user in a course
@@ -116,27 +117,31 @@ export async function PATCH(request: NextRequest) {
     if (typeof body.welcomeShown === 'boolean') {
       updates.welcome_shown = body.welcomeShown;
     }
-    if (typeof body.progressPercentage === 'number') {
-      updates.progress_percentage = Math.min(100, Math.max(0, body.progressPercentage));
-    }
+    const shouldRecalculateProgress = typeof body.progressPercentage === 'number';
 
-    if (Object.keys(updates).length === 0) {
+    if (Object.keys(updates).length === 0 && !shouldRecalculateProgress) {
       return NextResponse.json({ success: false, error: 'No updates provided' }, { status: 400 });
     }
 
-    const { error } = await supabaseAdmin
-      .from('myuni_enrollments')
-      .update(updates)
-      .eq('user_id', userId)
-      .eq('course_id', courseId)
-      .eq('is_active', true);
+    if (Object.keys(updates).length > 0) {
+      const { error } = await supabaseAdmin
+        .from('myuni_enrollments')
+        .update(updates)
+        .eq('user_id', userId)
+        .eq('course_id', courseId)
+        .eq('is_active', true);
 
-    if (error) {
-      console.error('Enrollment patch error:', error);
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+      if (error) {
+        console.error('Enrollment patch error:', error);
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+      }
     }
 
-    return NextResponse.json({ success: true });
+    const progressSync = shouldRecalculateProgress
+      ? await recalculateEnrollmentProgress(userId, courseId)
+      : null;
+
+    return NextResponse.json({ success: true, progressSync });
   } catch (error) {
     console.error('PATCH /api/enrollments error:', error);
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });

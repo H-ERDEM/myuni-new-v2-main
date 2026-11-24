@@ -1,5 +1,6 @@
 import 'server-only';
 import { supabaseAdmin as supabase } from './supabaseAdmin';
+import { recalculateEnrollmentProgress } from './enrollmentProgress';
 
 export type ProgressUpdate = {
   watch_time_seconds?: number;
@@ -219,6 +220,26 @@ export async function updateUserProgress(
     .single();
 
   if (error) throw error;
+
+  if (progressData.is_completed !== undefined) {
+    try {
+      const { data: lesson } = await supabase
+        .from('myuni_course_lessons')
+        .select('myuni_course_sections!inner(course_id)')
+        .eq('id', lessonId)
+        .maybeSingle();
+      const relation = Array.isArray(lesson?.myuni_course_sections)
+        ? lesson.myuni_course_sections[0]
+        : lesson?.myuni_course_sections;
+      const courseId = relation?.course_id ? String(relation.course_id) : '';
+      if (courseId) await recalculateEnrollmentProgress(userId, courseId);
+    } catch (syncError) {
+      // Progress is the source of truth. A cross-project summary failure must
+      // not discard the successfully persisted lesson update.
+      console.error('Enrollment progress summary sync failed:', syncError);
+    }
+  }
+
   return data;
 }
 

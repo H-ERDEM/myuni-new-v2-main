@@ -460,8 +460,8 @@ export const config = {
     // - media rewrites and payment callbacks
     // - api/iyzico-callback (webhook that fails on cross-origin POST with Clerk)
     // - public folder files
-    '/((?!_next|api/media(?:/|$)|media/learning(?:/|$)|api/iyzico-callback|api/shopier-|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/((?!_next|api/health(?:/|$)|api/media(?:/|$)|media/learning(?:/|$)|api/iyzico-callback|api/shopier-|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
     // Always run for API routes except media/webhooks/stubs.
-    '/(api(?!/media(?:/|$)|/iyzico-callback|/shopier-)|trpc)(.*)',
+    '/(api(?!/health(?:/|$)|/media(?:/|$)|/iyzico-callback|/shopier-)|trpc)(.*)',
   ],
 };

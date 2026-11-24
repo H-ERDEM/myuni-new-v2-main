@@ -44,9 +44,13 @@ environment variables in every Vercel environment before deploying:
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
 RATE_LIMIT_REDIS_PREFIX=myuni:ratelimit
+HEALTHCHECK_SECRET=
 ```
 
-Local development falls back to an in-memory limiter. On Vercel, `/api/health`
-reports a degraded state when Redis is not configured so a deployment cannot
-silently rely on per-instance limits. Redis outages fail over to the local
+Local development falls back to an in-memory limiter. On Vercel, the public
+`/api/health` endpoint reports only `healthy` or `degraded`; it does not expose
+component names, errors, or latency. Detailed database, payment, and rate-limit
+checks are available from `/api/health/details` with an
+`Authorization: Bearer <HEALTHCHECK_SECRET>` header. Health results are cached
+for 45 seconds to limit database traffic. Redis outages fail over to the local
 limiter to preserve API availability.

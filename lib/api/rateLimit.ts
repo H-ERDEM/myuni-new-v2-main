@@ -62,7 +62,7 @@ function ruleFor(request: NextRequest): RateLimitRule | null {
     return null;
   }
 
-  if (pathname === '/api/health') {
+  if (pathname === '/api/health' || pathname === '/api/health/details') {
     return { name: 'health', limit: 30, windowMs: MINUTE };
   }
   if (pathname === '/api/search' || pathname.startsWith('/api/ai-chat')) {

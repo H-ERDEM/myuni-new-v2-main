@@ -64,7 +64,7 @@ export function fetchPublicCatalog(
 ): Promise<PublicCatalogPayload> {
   const normalizedLocale = locale === 'en' ? 'en' : 'tr';
   const normalizedProgramType = programType.trim().toLowerCase();
-  const params = new URLSearchParams({ locale: normalizedLocale });
+  const params = new URLSearchParams({ locale: normalizedLocale, page: '1', limit: '100' });
   if (normalizedProgramType) params.set('program_type', normalizedProgramType);
   const key = params.toString();
 

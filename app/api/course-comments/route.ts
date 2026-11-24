@@ -137,7 +137,7 @@ export async function POST(request: Request) {
           is_anonymous: isAnonymous || false
         }
       ])
-      .select()
+      .select('id, course_id, user_id, user_display_name, content, rating, status, created_at, is_anonymous')
       .single();
 
     if (error) throw error;
@@ -234,7 +234,7 @@ export async function PUT(request: Request) {
         user_display_name: displayName
       })
       .eq('id', commentId)
-      .select()
+      .select('id, course_id, user_id, user_display_name, content, rating, status, created_at, is_anonymous')
       .single();
 
     if (error) {

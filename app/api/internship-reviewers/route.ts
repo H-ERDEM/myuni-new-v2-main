@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
         can_change_status,
         can_add_notes
       })
-      .select()
+      .select('id, clerk_id, email, name, role, is_active, can_vote, can_change_status, can_add_notes, created_at, updated_at')
       .single();
 
     if (error) {
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin
       .from('internship_reviewers')
-      .select('*')
+      .select('id, clerk_id, email, name, role, is_active, can_vote, can_change_status, can_add_notes, created_at, updated_at')
       .order('name', { ascending: true });
 
     if (email) {
@@ -162,7 +162,7 @@ export async function PATCH(request: NextRequest) {
         updated_at: new Date().toISOString()
       })
       .eq('id', reviewerId)
-      .select()
+      .select('id, clerk_id, email, name, role, is_active, can_vote, can_change_status, can_add_notes, created_at, updated_at')
       .single();
 
     if (error) {

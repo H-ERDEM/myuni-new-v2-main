@@ -10,7 +10,7 @@ export async function GET() {
 
   const { data: tags, error } = await supabaseAdmin
     .from('myuni_career_tags')
-    .select('*')
+    .select('id, slug, name, created_at')
     .order('slug');
 
   if (error) {
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
   const { data: tag, error } = await supabaseAdmin
     .from('myuni_career_tags')
     .insert({ slug, name })
-    .select()
+    .select('id, slug, name, created_at')
     .single();
 
   if (error || !tag) {

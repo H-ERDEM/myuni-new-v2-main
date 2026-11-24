@@ -5,6 +5,7 @@ import {
   getPublicCacheHeaders,
   PUBLIC_CACHE_TAGS,
 } from '@/lib/publicCache';
+import { paginationMetadata, parsePagination } from '@/lib/api/pagination';
 import { getLearningSupabaseClient } from '@/lib/supabase/databases';
 import { getPackageDisplayPrice } from '@/lib/packagePresentation';
 
@@ -260,10 +261,24 @@ export async function GET(request: NextRequest) {
 
     const locale = request.nextUrl.searchParams.get('locale') || 'tr';
     const programType = request.nextUrl.searchParams.get('program_type') || '';
+    const { page, limit, from, to } = parsePagination(request.nextUrl.searchParams, {
+      limit: 100,
+    });
     const catalog = await getCachedPublicCatalog(locale, programType);
+    const courses = catalog.courses.slice(from, to + 1);
+    const packages = catalog.packages.slice(from, to + 1);
 
     return NextResponse.json(
-      { success: true, ...catalog },
+      {
+        success: true,
+        ...catalog,
+        courses,
+        packages,
+        pagination: {
+          courses: paginationMetadata(page, limit, catalog.courses.length),
+          packages: paginationMetadata(page, limit, catalog.packages.length),
+        },
+      },
       { headers: getPublicCacheHeaders() }
     );
   } catch (error) {

@@ -3,6 +3,18 @@ import 'server-only';
 import { supabaseAdmin as supabase } from './supabaseAdmin';
 import { isEventRegistrationOpen } from '@/lib/events/eventRegistration';
 
+const EVENT_ENROLLMENT_COLUMNS = `
+  id, user_id, event_id, enrolled_at, attendance_status, welcome_shown,
+  notes
+`;
+
+const ENROLLMENT_EVENT_COLUMNS = `
+  id, slug, title, description, organizer_name, event_type, start_date, end_date,
+  timezone, is_online, location_name, meeting_url, is_paid, price, max_attendees,
+  thumbnail_url, banner_url, status, is_active, is_registration_open,
+  registration_deadline
+`;
+
 export interface EventEnrollment {
   id: string;
   user_id: string;
@@ -71,7 +83,7 @@ async function getEventAttendeeCount(eventId: string): Promise<number> {
   try {
     const { count, error } = await supabase
       .from('myuni_event_enrollments')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('event_id', eventId);
     if (error) {
       console.error('Error counting event attendees:', error);
@@ -305,7 +317,7 @@ export async function enrollUserInEvent(userId: string, eventId: string): Promis
     const { data: enrollment, error: enrollError } = await supabase
       .from('myuni_event_enrollments')
       .insert(enrollmentData)
-      .select('*')
+      .select(EVENT_ENROLLMENT_COLUMNS)
       .single();
 
     console.log('Event insert result:', { enrollment, enrollError });
@@ -386,8 +398,8 @@ export async function getUserEventEnrollments(userId: string): Promise<UserEvent
     const { data, error } = await supabase
       .from('myuni_event_enrollments')
       .select(`
-        *,
-        event:myuni_events(*)
+        ${EVENT_ENROLLMENT_COLUMNS},
+        event:myuni_events(${ENROLLMENT_EVENT_COLUMNS})
       `)
       .eq('user_id', userId)
       .order('enrolled_at', { ascending: false });
@@ -399,7 +411,7 @@ export async function getUserEventEnrollments(userId: string): Promise<UserEvent
 
     // Her etkinlik için dinamik katılımcı sayısını hesapla
     const enrollmentsWithDynamicCount = await Promise.all(
-      (data || []).map(async (enrollment: Partial<UserEventEnrollmentWithEvent> & Record<string, unknown>) => {
+      ((data || []) as unknown as UserEventEnrollmentWithEvent[]).map(async (enrollment) => {
         if (enrollment.event) {
           const attendeeCount = await getEventAttendeeCount(enrollment.event.id);
           enrollment.event.current_attendees = attendeeCount;
@@ -423,8 +435,8 @@ export async function getUserUpcomingEvents(userId: string): Promise<UserEventEn
     const { data, error } = await supabase
       .from('myuni_event_enrollments')
       .select(`
-        *,
-        event:myuni_events(*)
+        ${EVENT_ENROLLMENT_COLUMNS},
+        event:myuni_events(${ENROLLMENT_EVENT_COLUMNS})
       `)
       .eq('user_id', userId)
       .eq('myuni_events.status', 'upcoming')
@@ -438,7 +450,7 @@ export async function getUserUpcomingEvents(userId: string): Promise<UserEventEn
 
     // Her etkinlik için dinamik katılımcı sayısını hesapla
     const eventsWithDynamicCount = await Promise.all(
-      (data || []).map(async (enrollment: Partial<UserEventEnrollmentWithEvent> & Record<string, unknown>) => {
+      ((data || []) as unknown as UserEventEnrollmentWithEvent[]).map(async (enrollment) => {
         if (enrollment.event) {
           const attendeeCount = await getEventAttendeeCount(enrollment.event.id);
           enrollment.event.current_attendees = attendeeCount;
@@ -462,8 +474,8 @@ export async function getUserPastEvents(userId: string): Promise<UserEventEnroll
     const { data, error } = await supabase
       .from('myuni_event_enrollments')
       .select(`
-        *,
-        event:myuni_events(*)
+        ${EVENT_ENROLLMENT_COLUMNS},
+        event:myuni_events(${ENROLLMENT_EVENT_COLUMNS})
       `)
       .eq('user_id', userId)
       .eq('myuni_events.status', 'completed')
@@ -476,7 +488,7 @@ export async function getUserPastEvents(userId: string): Promise<UserEventEnroll
 
     // Her etkinlik için dinamik katılımcı sayısını hesapla
     const eventsWithDynamicCount = await Promise.all(
-      (data || []).map(async (enrollment: Partial<UserEventEnrollmentWithEvent> & Record<string, unknown>) => {
+      ((data || []) as unknown as UserEventEnrollmentWithEvent[]).map(async (enrollment) => {
         if (enrollment.event) {
           const attendeeCount = await getEventAttendeeCount(enrollment.event.id);
           enrollment.event.current_attendees = attendeeCount;

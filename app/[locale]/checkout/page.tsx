@@ -364,7 +364,7 @@ function CheckoutContent({ params }: CheckoutPageProps) {
       
       const { data, error: supabaseError } = await learningSupabase
         .from('myuni_courses')
-        .select('*')
+        .select('id, title, description, price, original_price, thumbnail_url, slug, is_active, early_bird_price, early_bird_deadline, shopier_product_url')
         .eq('id', courseId)
         .eq('is_active', true)
         .single();
@@ -406,7 +406,7 @@ function CheckoutContent({ params }: CheckoutPageProps) {
 
       const { data: tier, error: tierError } = await learningSupabase
         .from('myuni_course_tiers')
-        .select('*')
+        .select('id, course_id, title, slug, description, price, original_price, early_bird_price, early_bird_deadline, shopier_product_url, is_active, is_full_course')
         .eq('id', selectedTierId)
         .eq('course_id', courseId)
         .eq('is_active', true)

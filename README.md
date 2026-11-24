@@ -34,3 +34,19 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Distributed API rate limiting
+
+API rate limits use an atomic Lua counter in Upstash Redis. Configure these
+environment variables in every Vercel environment before deploying:
+
+```text
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+RATE_LIMIT_REDIS_PREFIX=myuni:ratelimit
+```
+
+Local development falls back to an in-memory limiter. On Vercel, `/api/health`
+reports a degraded state when Redis is not configured so a deployment cannot
+silently rely on per-instance limits. Redis outages fail over to the local
+limiter to preserve API availability.

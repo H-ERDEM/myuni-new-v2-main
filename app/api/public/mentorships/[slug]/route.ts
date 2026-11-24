@@ -1,5 +1,13 @@
+import { unstable_cache } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPublicMentorshipBySlug } from '@/lib/mentorshipService';
+import { getPublicCacheHeaders, PUBLIC_CACHE_SECONDS } from '@/lib/publicCache';
+
+const getCachedPublicMentorship = unstable_cache(
+  (slug: string, locale: string) => getPublicMentorshipBySlug(slug, locale),
+  ['public-mentorship-detail-v2'],
+  { revalidate: PUBLIC_CACHE_SECONDS }
+);
 
 export async function GET(
   request: NextRequest,
@@ -8,7 +16,7 @@ export async function GET(
   try {
     const locale = request.nextUrl.searchParams.get('locale') === 'en' ? 'en' : 'tr';
     const { slug } = await context.params;
-    const mentorship = await getPublicMentorshipBySlug(slug, locale);
+    const mentorship = await getCachedPublicMentorship(slug, locale);
 
     if (!mentorship) {
       return NextResponse.json(
@@ -17,7 +25,10 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ success: true, locale, mentorship });
+    return NextResponse.json(
+      { success: true, locale, mentorship },
+      { headers: getPublicCacheHeaders() }
+    );
   } catch (err) {
     console.error('Public mentorship detail error:', err);
     return NextResponse.json(

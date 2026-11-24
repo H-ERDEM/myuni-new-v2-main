@@ -1,6 +1,7 @@
 // middleware.ts (root dizinde)
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import { enforceApiRateLimit } from '@/lib/api/rateLimit';
 
 // Public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
@@ -276,7 +277,24 @@ export default clerkMiddleware(async (auth, req) => {
   
   // API Callback'leri Clerk handshake'inden korumak için auth() öncesi bypass
   // Shopier stub'ları da Clerk redirect'ine takılmadan 410 dönebilsin
-  if (pathname.startsWith('/api/iyzico-') || pathname.startsWith('/api/shopier-')) {
+  if (
+    pathname === '/api/iyzico-callback' ||
+    pathname === '/api/shopier-callback' ||
+    pathname === '/api/shopier-webhook'
+  ) {
+    return NextResponse.next();
+  }
+
+  // Reject abusive API traffic before authentication or any Supabase call.
+  const rateLimitResponse = await enforceApiRateLimit(req);
+  if (rateLimitResponse) return rateLimitResponse;
+
+  // Cacheable public reads do not need a Clerk session lookup.
+  if (
+    pathname.startsWith('/api/public/') ||
+    pathname === '/api/enrollments/counts' ||
+    pathname === '/api/event-enrollments/counts'
+  ) {
     return NextResponse.next();
   }
 
@@ -439,11 +457,11 @@ export const config = {
     // Match all request paths except for the ones starting with:
     // - _next/static (static files)
     // - _next/image (image optimization files)
-    // - cacheable public catalog/count APIs and media (middleware would add origin transfer)
+    // - media rewrites and payment callbacks
     // - api/iyzico-callback (webhook that fails on cross-origin POST with Clerk)
     // - public folder files
-    '/((?!_next|api/media(?:/|$)|media/learning(?:/|$)|api/public(?:/|$)|api/enrollments/counts(?:/|$)|api/event-enrollments/counts(?:/|$)|api/iyzico-callback|api/shopier-|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes EXCEPT public cacheable endpoints/webhooks/stubs
-    '/(api(?!/media(?:/|$)|/public(?:/|$)|/enrollments/counts(?:/|$)|/event-enrollments/counts(?:/|$)|/iyzico-callback|/shopier-)|trpc)(.*)',
+    '/((?!_next|api/media(?:/|$)|media/learning(?:/|$)|api/iyzico-callback|api/shopier-|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Always run for API routes except media/webhooks/stubs.
+    '/(api(?!/media(?:/|$)|/iyzico-callback|/shopier-)|trpc)(.*)',
   ],
 };

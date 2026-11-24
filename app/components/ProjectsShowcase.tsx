@@ -3,15 +3,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Database, Code, Shield, Globe, Lock, BarChart, Cpu, Server, Cloud } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-
-// Environment variables for Supabase connection
-// These should be defined in your .env.local file
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-
-// Create Supabase client
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Project arayüzü
 interface Project {
@@ -45,52 +36,9 @@ const ProjectsShowcase: React.FC<ProjectsShowcaseProps> = ({ locale }) => {
 
   // Supabase'den içerik getirme fonksiyonu
   const fetchProjectsContent = useCallback(async (locale: string) => {
-    try {
-      setLoading(true);
-      
-      // Database sorgusu
-      const { data, error } = await supabase
-        .from('projects_content')
-        .select('*')
-        .eq('locale', locale)
-        .single();
-
-      if (error) {
-        console.error('Error fetching projects content:', error);
-        // Hata durumunda varsayılan içeriğe geç
-        setContent(getDefaultProjectsContent(locale));
-        return;
-      }
-
-      // JSONB veri tipini işle
-      let parsedProjects = data.projects;
-      
-      // Eğer projects bir string ise, parse et
-      if (typeof data.projects === 'string') {
-        try {
-          parsedProjects = JSON.parse(data.projects);
-        } catch (e) {
-          console.error('Error parsing projects JSON:', e);
-          parsedProjects = getDefaultProjectsContent(locale).projects;
-        }
-      }
-
-      // İçeriği state'e kaydet
-      setContent({
-        title_span: data.title_span,
-        title: data.title,
-        description: data.description,
-        cta_text: data.cta_text,
-        cta_link: data.cta_link,
-        projects: parsedProjects
-      });
-      
-    } catch (error) {
-      console.error('Failed to fetch projects content:', error);
-      setContent(getDefaultProjectsContent(locale));
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    setContent(getDefaultProjectsContent(locale));
+    setLoading(false);
   }, []);
 
   // Varsayılan içerik sağlayan fonksiyon

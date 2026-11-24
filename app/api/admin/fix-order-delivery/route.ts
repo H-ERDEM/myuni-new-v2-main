@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
     const { data: order, error } = await supabase
       .from('orders')
-      .select('*')
+      .select('id, orderid, courseid, useremail, coursename, amount, status, paymentid, paymentmethod, created_at, updated_at, enrolled, enrollmentid, notes, custom_data, discountcode, discountamount')
       .eq('orderid', orderId)
       .maybeSingle();
 

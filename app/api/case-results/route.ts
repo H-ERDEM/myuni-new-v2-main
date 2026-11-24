@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     let caseResult;
     const { data, error } = await supabase
       .from('myuni_case_result')
-      .select('*')
+      .select('id, participant_name, contact_email, backup_email, subject, highlight_direction, general_score, comments, second_instructor_score, average_score, second_comments, user_id, created_at, updated_at')
       .eq('user_id', clerkUserId)
       .maybeSingle();
     
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       
       const { data: emailMatchResult, error: emailError } = await supabase
         .from('myuni_case_result')
-        .select('*')
+        .select('id, participant_name, contact_email, backup_email, subject, highlight_direction, general_score, comments, second_instructor_score, average_score, second_comments, user_id, created_at, updated_at')
         .or(`contact_email.ilike.${normalizedEmail},backup_email.ilike.${normalizedEmail}`)
         .maybeSingle();
 
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
           .from('myuni_case_result')
           .update({ user_id: clerkUserId, updated_at: new Date().toISOString() })
           .eq('id', emailMatchResult.id)
-          .select()
+          .select('id, participant_name, contact_email, backup_email, subject, highlight_direction, general_score, comments, second_instructor_score, average_score, second_comments, user_id, created_at, updated_at')
           .single();
 
         if (!updateError && updatedResult) {

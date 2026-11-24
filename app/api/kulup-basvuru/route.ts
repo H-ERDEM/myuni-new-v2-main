@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
           created_at: new Date().toISOString()
         }
       ])
-      .select();
+      .select('id, status, created_at');
     
     if (error) {
       console.error('Database error:', error);

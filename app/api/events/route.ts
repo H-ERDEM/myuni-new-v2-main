@@ -6,6 +6,7 @@ import {
   PUBLIC_CACHE_SECONDS,
   PUBLIC_CACHE_TAGS,
 } from '@/lib/publicCache';
+import { paginationMetadata, parsePagination } from '@/lib/api/pagination';
 
 const getCachedEvents = unstable_cache(
   async (locale: string, type: string) =>
@@ -22,18 +23,21 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const locale = searchParams.get('locale') || 'tr';
     const type = searchParams.get('type') || 'all'; // 'all' or 'filter'
+    const { page, limit, from, to } = parsePagination(searchParams);
     
     console.log('Fetching events via API:', { locale, type });
 
     const events = await getCachedEvents(locale, type);
+    const paginatedEvents = events.slice(from, to + 1);
 
     console.log(`API returned ${events.length} events`);
 
     return NextResponse.json(
       {
         success: true,
-        data: events,
-        count: events.length
+        data: paginatedEvents,
+        count: paginatedEvents.length,
+        pagination: paginationMetadata(page, limit, events.length),
       },
       { headers: getPublicCacheHeaders() }
     );

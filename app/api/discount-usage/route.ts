@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     const { data: discountCode, error: findError } = await supabase
       .from('discount_codes')
-      .select('*')
+      .select('id, valid_until, max_usage, usage_count, has_balance_limit, remaining_balance')
       .eq('code', code)
       .eq('is_referral', false)
       .single();

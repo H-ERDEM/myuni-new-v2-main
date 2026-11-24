@@ -13,7 +13,7 @@ export async function GET() {
     const [oppRes, tags, courses] = await Promise.all([
       supabaseAdmin
         .from('myuni_opportunities')
-        .select('*')
+        .select('id, slug, title, description, company_name, location, work_mode, application_deadline, form_config_id, is_active, is_featured, order_index, created_at, updated_at, panel_organization_id, site_form_id, opportunity_type, created_by, banner_url, thumbnail_url')
         .order('order_index')
         .order('created_at', { ascending: false }),
       getAllCareerTags(),
@@ -29,13 +29,13 @@ export async function GET() {
       ids.length
         ? supabaseAdmin
             .from('myuni_opportunity_career_tags')
-            .select('*')
+            .select('opportunity_id, tag_id')
             .in('opportunity_id', ids)
         : Promise.resolve({ data: [] }),
       ids.length
         ? supabaseAdmin
             .from('myuni_opportunity_courses')
-            .select('*')
+            .select('opportunity_id, course_id, match_type')
             .in('opportunity_id', ids)
         : Promise.resolve({ data: [] }),
     ]);
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
         is_featured,
         order_index,
       })
-      .select()
+      .select('id, slug, title, description, company_name, location, work_mode, application_deadline, form_config_id, is_active, is_featured, order_index, created_at, updated_at, panel_organization_id, site_form_id, opportunity_type, created_by, banner_url, thumbnail_url')
       .single();
 
     if (error || !opp) {

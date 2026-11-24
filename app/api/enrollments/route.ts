@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     const { data: enrollment, error: enrollError } = await supabaseAdmin
       .from('myuni_enrollments')
       .insert(enrollmentData)
-      .select('*')
+      .select('id, user_id, course_id, enrolled_at, progress_percentage, is_active, welcome_shown')
       .single();
 
     if (enrollError) {

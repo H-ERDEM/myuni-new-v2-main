@@ -196,7 +196,7 @@ async function sendConfirmationIfNeeded(order: any, snapshot: OrderSnapshot, pai
 export async function reconcileOrderWithIyzico(orderId: string): Promise<ReconcileResult> {
   const { data: order, error } = await supabase
     .from('orders')
-    .select('*')
+    .select('id, orderid, courseid, useremail, coursename, amount, status, paymentid, paymentmethod, created_at, updated_at, enrolled, enrollmentid, notes, custom_data, discountcode, discountamount')
     .eq('orderid', orderId)
     .maybeSingle();
 
@@ -398,14 +398,14 @@ export async function reconcileOrderWithIyzico(orderId: string): Promise<Reconci
     .update({ status: 'processing', updated_at: new Date().toISOString() })
     .eq('orderid', orderId)
     .in('status', ['pending', 'failed', 'payment_error', 'payment_review', 'processing', 'cancelled'])
-    .select()
+    .select('id, orderid, courseid, useremail, coursename, amount, status, paymentid, paymentmethod, created_at, updated_at, enrolled, enrollmentid, notes, custom_data, discountcode, discountamount')
     .maybeSingle();
 
   if (claimError || !claimed) {
     // Another worker finished it — repair if needed
     const { data: fresh } = await supabase
       .from('orders')
-      .select('*')
+      .select('id, orderid, courseid, useremail, coursename, amount, status, paymentid, paymentmethod, created_at, updated_at, enrolled, enrollmentid, notes, custom_data, discountcode, discountamount')
       .eq('orderid', orderId)
       .maybeSingle();
 

@@ -2,9 +2,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Play } from 'lucide-react';
-import { getLearningSupabaseClient } from '@/lib/supabase/databases';
-
-const supabase = getLearningSupabaseClient();
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 
@@ -113,20 +110,14 @@ const VideoPreviewModal: React.FC<VideoPreviewModalProps> = ({
       }
 
       // Fetch the first video of the lesson for preview
-      const { data: videos, error: videosError } = await supabase
-        .from('myuni_videos')
-        .select('id, lesson_id, title, description, vimeo_id, video_url, thumbnail_url, duration_seconds, order_index, vimeo_hash')
-        .eq('lesson_id', lessonId)
-        .order('order_index', { ascending: true })
-        .limit(1);
-
-      if (videosError) {
-        console.error('Videos query error:', videosError);
-        throw new Error(`Failed to fetch videos: ${videosError.message}`);
+      const response = await fetch(`/api/public/lessons/${encodeURIComponent(lessonId)}/preview`);
+      const payload = await response.json();
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error || 'Failed to fetch video');
       }
 
-      if (videos && videos.length > 0) {
-        setVideo(videos[0]);
+      if (payload.video) {
+        setVideo(payload.video as VimeoVideo);
       } else {
         setError('No video content found for this lesson');
       }

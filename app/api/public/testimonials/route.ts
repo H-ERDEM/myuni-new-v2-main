@@ -5,11 +5,11 @@ import {
   PUBLIC_CACHE_SECONDS,
   PUBLIC_CACHE_TAGS,
 } from '@/lib/publicCache';
-import { createServerSupabasePublicClient } from '@/lib/supabase-server';
+import { getLearningAdminClient } from '@/lib/supabase/adminDatabases';
 
 const getCachedTestimonials = unstable_cache(
   async () => {
-    const supabase = createServerSupabasePublicClient();
+    const supabase = getLearningAdminClient();
     const { data, error } = await supabase
       .from('myuni_comments')
       .select('id, user_display_name, content, rating, created_at, myuni_courses(title)')

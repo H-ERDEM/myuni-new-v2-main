@@ -332,13 +332,15 @@ async function saveOrderToDatabase(orderData: any) {
         ip_address: orderData.ipAddress,
         user_agent: orderData.userAgent
       })
-      .select()
+      .select('id, orderid, courseid, useremail, coursename, amount, status, paymentid, paymentmethod, created_at, updated_at, enrolled, enrollmentid, notes, custom_data, discountcode, discountamount')
       .single();
 
-    if (orderError) return { success: false, error: orderError.message };
-    return { success: true, order: savedOrder };
+    if (orderError || !savedOrder) {
+      return { success: false as const, error: orderError?.message || 'Order insert returned no row' };
+    }
+    return { success: true as const, order: savedOrder };
   } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    return { success: false as const, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
@@ -879,7 +881,12 @@ export async function POST(request: Request) {
 
         const { data: tierData, error: tierError } = await supabase
           .from('myuni_course_tiers')
-          .select('*, myuni_courses(id, title, slug, course_type, description, is_active)')
+          .select(`
+            id, course_id, title, slug, description, price, original_price,
+            early_bird_price, early_bird_deadline, shopier_product_url,
+            is_active, is_full_course,
+            myuni_courses(id, title, slug, course_type, description, is_active)
+          `)
           .eq('id', body.tierId)
           .eq('course_id', body.courseId)
           .eq('is_active', true)
@@ -916,7 +923,7 @@ export async function POST(request: Request) {
       } else {
         const { data: courseData, error: courseError } = await supabase
           .from('myuni_courses')
-          .select('*')
+          .select('id, slug, title, price, is_active, course_type, early_bird_price, early_bird_deadline')
           .eq('id', body.courseId)
           .eq('is_active', true)
           .maybeSingle();

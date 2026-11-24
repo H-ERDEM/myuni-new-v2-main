@@ -5,13 +5,11 @@ import { Clock, Play, Info, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
-import { getLearningSupabaseClient } from '@/lib/supabase/databases';
+import { fetchPublicCatalog } from '@/lib/publicApiClient';
 import AddToCartButton from '../../../../cart/AddToCartButton';
 import CourseTierSelector from './CourseTierSelector';
-import { getCourseTiers } from '@/lib/courseService';
 import type { CourseTier } from '@/lib/types/tier';
 
-const supabase = getLearningSupabaseClient();
 
 interface Course {
   id: string;
@@ -335,35 +333,24 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
       setLoadingLatestCourses(true);
       
       // En son eklenen kursları getir (mevcut kurs hariç)
-      const { data: courses, error } = await supabase
-        .from('myuni_courses')
-        .select('id, title, price, original_price, early_bird_price, early_bird_deadline, thumbnail_url, slug, level, duration')
-        .eq('is_active', true)
-        .neq('id', course.id)
-        .order('created_at', { ascending: false })
-        .limit(2);
-      
-      if (error) {
-        console.error('Error fetching latest courses:', error);
-        setLatestCourses([]);
-      } else {
-        // Benzersiz kursları kontrol et ve slug kontrolü yap
-        const validCourses = courses ? courses.filter((courseItem, index, self) => {
+      const payload = await fetchPublicCatalog(locale);
+      const courses = Array.isArray(payload.courses) ? payload.courses as SimilarCourse[] : [];
+      const validCourses = courses
+        .filter((item) => String(item.id) !== String(course.id))
+        .filter((courseItem, index, self) => {
           const isUnique = index === self.findIndex(c => c.id === courseItem.id);
           const hasValidSlug = courseItem.slug && courseItem.slug.trim() !== '';
-          
           return isUnique && hasValidSlug;
-        }) : [];
-        
-        setLatestCourses(validCourses);
-      }
+        })
+        .slice(0, 2);
+      setLatestCourses(validCourses);
     } catch (error) {
       console.error('Error fetching latest courses:', error);
       setLatestCourses([]);
     } finally {
       setLoadingLatestCourses(false);
     }
-  }, [course.id]);
+  }, [course.id, locale]);
 
   // Kayıt durumunu kontrol et
   const checkEnrollmentStatus = useCallback(async () => {
@@ -403,7 +390,12 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
     }
     try {
       if (courseTiers.length === 0) setLoadingTiers(true);
-      const tiers = await getCourseTiers(course.id);
+      const response = await fetch(`/api/courses/${encodeURIComponent(course.id)}/tiers`);
+      const payload = await response.json();
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.message || 'Tier listesi alınamadı');
+      }
+      const tiers = Array.isArray(payload.tiers) ? payload.tiers as CourseTier[] : [];
       if (tiers.length > 0) {
         setCourseTiers(tiers);
       }

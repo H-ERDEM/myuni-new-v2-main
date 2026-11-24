@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     // Fetch form configuration
           const { data: formConfig, error: configError } = await supabase
             .from('unilab_vision_form_configs')
-            .select('*')
+            .select('id, form_name, title, subtitle, submit_button_text, success_message, privacy_notice, terms_and_conditions, is_active, created_at, updated_at')
             .eq('form_name', 'kulup_form')
             .eq('is_active', true)
             .single();
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     // Fetch form fields
           const { data: formFields, error: fieldsError } = await supabase
             .from('unilab_vision_form_fields')
-            .select('*')
+            .select('id, form_config_id, field_key, field_type, label, placeholder, is_required, validation_rules, options, sort_order, grid_columns, is_active, created_at, updated_at')
             .eq('form_config_id', formConfig.id)
             .eq('is_active', true)
             .order('sort_order', { ascending: true });

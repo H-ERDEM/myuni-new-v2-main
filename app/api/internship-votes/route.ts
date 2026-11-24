@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
           onConflict: 'application_id,voter_id',
         }
       )
-      .select()
+      .select('id, application_id, voter_id, voter_email, voter_name, vote_type, score, comment, created_at, updated_at')
       .single();
 
     if (error) {
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin
       .from('internship_votes')
-      .select('*')
+      .select('id, application_id, voter_id, voter_email, voter_name, vote_type, score, comment, created_at, updated_at')
       .order('created_at', { ascending: false });
 
     if (applicationId) {

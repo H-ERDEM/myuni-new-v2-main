@@ -3,6 +3,13 @@ import { getFormsAdminClient } from '@/lib/supabase/adminDatabases';
 
 const supabaseAdmin = getFormsAdminClient();
 
+const PUBLIC_MENTORSHIP_COLUMNS = `
+  id, slug, title, summary, description, mentor_name, mentor_title, mentor_bio,
+  mentor_image_url, mentor_linkedin, mentorship_type, mode, location_name,
+  application_deadline, start_date, end_date, max_mentees, current_mentees,
+  is_application_open, thumbnail_url, banner_url, tags, is_featured, order_index
+`;
+
 export type MentorshipMode = 'online' | 'hybrid' | 'onsite';
 export type MentorshipType =
   | 'general'
@@ -97,11 +104,11 @@ function mapRow(row: Record<string, unknown>, locale: string): PublicMentorship 
 
 export async function getPublicMentorships(
   locale: string = 'tr',
-  options?: { featuredOnly?: boolean; limit?: number }
+  options?: { featuredOnly?: boolean; limit?: number; offset?: number }
 ): Promise<PublicMentorship[]> {
   let query = supabaseAdmin
     .from('mentorships')
-    .select('*')
+    .select(PUBLIC_MENTORSHIP_COLUMNS)
     .eq('is_active', true)
     .order('order_index', { ascending: true })
     .order('created_at', { ascending: false });
@@ -111,7 +118,8 @@ export async function getPublicMentorships(
   }
 
   if (options?.limit) {
-    query = query.limit(options.limit);
+    const offset = Math.max(0, options.offset || 0);
+    query = query.range(offset, offset + options.limit - 1);
   }
 
   const { data, error } = await query;
@@ -130,7 +138,7 @@ export async function getPublicMentorshipBySlug(
 ): Promise<PublicMentorship | null> {
   const { data, error } = await supabaseAdmin
     .from('mentorships')
-    .select('*')
+    .select(PUBLIC_MENTORSHIP_COLUMNS)
     .eq('slug', slug)
     .eq('is_active', true)
     .maybeSingle();

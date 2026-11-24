@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { sendCommentNotifications } from '../../_services/commentNotificationService';
+import { paginationMetadata, parsePagination } from '@/lib/api/pagination';
 
 function toInitials(firstName?: string | null, lastName?: string | null): string {
   const f = firstName?.trim() || '';
@@ -22,6 +23,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const eventId = searchParams.get('eventId');
   const action = searchParams.get('action');
+  const { page, limit, from, to } = parsePagination(searchParams);
   
   if (!eventId) {
     return NextResponse.json({ error: 'eventId is required' }, { status: 400 });
@@ -54,16 +56,20 @@ export async function GET(request: Request) {
     }
 
     // Default: return comments
-    const { data, error } = await supabase
+    const { data, error, count } = await supabase
       .from('myuni_event_comments')
-      .select('*')
+      .select('id, event_id, user_id, user_display_name, content, rating, is_anonymous, status, created_at', { count: 'exact' })
       .eq('event_id', eventId)
       .eq('status', 'approved')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
     if (error) throw error;
 
-    return NextResponse.json({ comments: data });
+    return NextResponse.json({
+      comments: data,
+      pagination: paginationMetadata(page, limit, count || 0),
+    });
   } catch (err) {
     console.error('GET /event-comments error', err);
     return NextResponse.json({ error: 'Failed to fetch comments' }, { status: 500 });
@@ -128,7 +134,7 @@ export async function POST(request: Request) {
           is_anonymous: isAnonymous || false
         }
       ])
-      .select()
+      .select('id, event_id, user_id, user_display_name, content, rating, is_anonymous, status, created_at')
       .single();
 
     if (error) throw error;
@@ -224,7 +230,7 @@ export async function PUT(request: Request) {
         user_display_name: displayName
       })
       .eq('id', commentId)
-      .select()
+      .select('id, event_id, user_id, user_display_name, content, rating, is_anonymous, status, created_at')
       .single();
 
     if (error) {

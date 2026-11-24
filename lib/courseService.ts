@@ -99,7 +99,7 @@ interface LessonWithSection {
   section_id: string;
   is_active: boolean;
   videos?: Array<{ duration_seconds?: number | null }>;
-  myuni_course_sections: {
+  myuni_course_sections?: {
     course_id: string;
   };
 }
@@ -136,6 +136,19 @@ const LIVE_COURSE_COLUMNS = `
 const COURSE_CONTENT_SUMMARY_COLUMNS = `
   id, title, slug, is_active, instructor_name, course_type,
   live_start_date, live_end_date, live_timezone, duration
+`;
+
+const PACKAGE_DETAIL_COLUMNS = `
+  id, slug, title, description, price, original_price, duration, level,
+  instructor_name, thumbnail_url, banner_url, is_active, created_at, updated_at,
+  shopier_product_id, shopier_product_url, objectives, requirements
+`;
+
+const COURSE_TIER_COLUMNS = `
+  id, course_id, title, slug, description, price, original_price,
+  early_bird_price, early_bird_deadline, shopier_product_id,
+  shopier_product_url, is_registration_open, is_active, order_index,
+  includes_qa, is_full_course, session_labels
 `;
 
 type LessonDurationSection = {
@@ -422,7 +435,7 @@ export async function getPackageBySlug(slug: string, locale: string = 'tr') {
   try {
     const { data, error } = await supabase
       .from('myuni_packages')
-      .select('*')
+      .select(PACKAGE_DETAIL_COLUMNS)
       .eq('slug', slug)
       .eq('is_active', true)
       .single();
@@ -439,10 +452,7 @@ export async function getPackageBySlug(slug: string, locale: string = 'tr') {
     // Fetch included courses
     const { data: packageCourses, error: pcError } = await supabase
       .from('myuni_package_courses')
-      .select(`
-        order_index,
-        myuni_courses (*)
-      `)
+      .select(`order_index, myuni_courses (${COURSE_DETAIL_COLUMNS})`)
       .eq('package_id', data.id)
       .order('order_index', { ascending: true });
       
@@ -595,7 +605,7 @@ export async function getLiveSessions(courseId: string) {
   try {
     const { data, error } = await supabase
       .from('myuni_live_sessions')
-      .select('*')
+      .select('id, course_id, session_number, title, description, start_time, end_time, meeting_url, meeting_password, agenda, materials_url, recording_url, is_completed, created_at, updated_at')
       .eq('course_id', courseId)
       .order('session_number', { ascending: true });
 
@@ -612,7 +622,7 @@ export async function getCourseTiers(courseId: string) {
   try {
     const { data: tiers, error } = await supabase
       .from('myuni_course_tiers')
-      .select('*')
+      .select(COURSE_TIER_COLUMNS)
       .eq('course_id', courseId)
       .eq('is_active', true)
       .order('order_index', { ascending: true });
@@ -626,7 +636,13 @@ export async function getCourseTiers(courseId: string) {
       tier_id: string;
       session_id: string;
       order_index: number;
-      myuni_live_sessions: unknown;
+      myuni_live_sessions: {
+        id: string;
+        title?: string;
+        session_number?: number;
+        start_time?: string;
+        end_time?: string;
+      } | null;
     }> = [];
 
     if (tierIds.length > 0) {
@@ -651,7 +667,7 @@ export async function getCourseTiers(courseId: string) {
       if (sessionsError) {
         console.warn('Tier sessions fetch skipped:', sessionsError.message);
       } else {
-        tierSessions = data || [];
+        tierSessions = (data || []) as unknown as typeof tierSessions;
       }
     }
 
@@ -667,7 +683,7 @@ export async function getCourseTiers(courseId: string) {
           tier_id: ts.tier_id,
           session_id: ts.session_id,
           order_index: ts.order_index,
-          session: ts.myuni_live_sessions,
+          session: ts.myuni_live_sessions || undefined,
         })),
     }));
   } catch (error) {
@@ -681,7 +697,7 @@ export async function getCourseTierById(tierId: string) {
   try {
     const { data, error } = await supabase
       .from('myuni_course_tiers')
-      .select('*')
+      .select(COURSE_TIER_COLUMNS)
       .eq('id', tierId)
       .eq('is_active', true)
       .single();
@@ -711,7 +727,7 @@ export async function registerForLiveCourse(userId: string, courseId: string) {
         status: 'registered',
         payment_status: 'pending'
       })
-      .select()
+      .select('id, user_id, course_id, registration_date, status, payment_status, attendance_sessions, completion_percentage, certificate_issued, notes, created_at, updated_at')
       .single();
 
     if (error) throw error;
@@ -912,9 +928,9 @@ export async function getCourseSections(courseId: string) {
     const { data: sections, error } = await supabase
       .from('myuni_course_sections')
       .select(`
-        *,
+        id, title, order_index,
         lessons:myuni_course_lessons(
-          *,
+          id, title, lesson_type, duration_minutes, order_index, section_id, is_active,
           videos:myuni_videos(duration_seconds)
         )
       `)
@@ -988,7 +1004,7 @@ export async function getUserEnrollment(userId: string, courseId: string) {
 
     const { data, error } = await supabase
       .from('myuni_enrollments')
-      .select('*')
+      .select('id, user_id, course_id, enrolled_at, progress_percentage, is_active, welcome_shown, tier_id')
       .eq('user_id', userId)
       .eq('course_id', courseId)
       .eq('is_active', true)
@@ -1015,7 +1031,7 @@ export async function enrollUserToCourse(userId: string, courseId: string) {
         progress_percentage: 0,
         is_active: true
       })
-      .select()
+      .select('id, user_id, course_id, enrolled_at, progress_percentage, is_active, welcome_shown, tier_id')
       .single();
 
     if (error) throw error;

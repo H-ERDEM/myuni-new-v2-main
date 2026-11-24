@@ -4,9 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Linkedin, Mail, Lock, Edit2, Trash2, X, Check } from 'lucide-react';
 import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
-import { getLearningSupabaseClient } from '@/lib/supabase/databases';
-
-const supabase = getLearningSupabaseClient();
+import { toLearningPublicStorageUrl } from '@/lib/mediaUrl';
 
 interface CourseObjective {
   id: string;
@@ -50,6 +48,8 @@ interface Course {
   rating?: number;
   students?: number;
   course_type?: 'online' | 'live' | 'hybrid';
+  objectives?: CourseObjective[];
+  requirements?: CourseRequirement[];
 }
 
 interface CourseMainContentTexts {
@@ -70,8 +70,8 @@ const CourseMainContent: React.FC<CourseMainContentProps> = ({
 }) => {
   const { user, isLoaded } = useUser();
   const [course, setCourse] = useState<Course | null>(propCourse || null);
-  const [objectives, setObjectives] = useState<CourseObjective[]>([]);
-  const [requirements, setRequirements] = useState<CourseRequirement[]>([]);
+  const [objectives, setObjectives] = useState<CourseObjective[]>(propCourse?.objectives || []);
+  const [requirements, setRequirements] = useState<CourseRequirement[]>(propCourse?.requirements || []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'objectives' | 'requirements' | 'comments'>('overview');
@@ -134,42 +134,10 @@ const CourseMainContent: React.FC<CourseMainContentProps> = ({
         setLoading(true);
         setError(null);
 
-        const { data: courseData, error: courseError } = await supabase
-          .from('myuni_courses')
-          .select('*')
-          .eq('slug', courseSlug)
-          .eq('is_active', true)
-          .single();
-
-        if (courseError) {
-          throw new Error('Kurs bulunamadı');
-        }
-
-        setCourse(courseData);
-
-        const { data: objectivesData, error: objectivesError } = await supabase
-          .from('myuni_course_objectives')
-          .select('*')
-          .eq('course_id', courseData.id)
-          .order('order_index', { ascending: true });
-
-        if (objectivesError) {
-          console.error('Hedefler çekilemedi:', objectivesError);
-        } else {
-          setObjectives(objectivesData || []);
-        }
-
-        const { data: requirementsData, error: requirementsError } = await supabase
-          .from('myuni_course_requirements')
-          .select('*')
-          .eq('course_id', courseData.id)
-          .order('order_index', { ascending: true });
-
-        if (requirementsError) {
-          console.error('Gereksinimler çekilemedi:', requirementsError);
-        } else {
-          setRequirements(requirementsData || []);
-        }
+        if (!propCourse) throw new Error('Kurs bulunamadı');
+        setCourse(propCourse);
+        setObjectives(propCourse.objectives || []);
+        setRequirements(propCourse.requirements || []);
 
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Bir hata oluştu');
@@ -178,10 +146,10 @@ const CourseMainContent: React.FC<CourseMainContentProps> = ({
       }
     };
 
-    if (courseSlug) {
+    if (courseSlug && propCourse) {
       fetchCourseData();
     }
-  }, [courseSlug]);
+  }, [courseSlug, propCourse]);
 
   // Yorumları getir
   useEffect(() => {
@@ -302,12 +270,7 @@ const CourseMainContent: React.FC<CourseMainContentProps> = ({
       return imagePath;
     }
     
-    // Supabase storage URL'ini oluştur
-    const { data } = supabase.storage
-      .from('myunilab')
-      .getPublicUrl(imagePath);
-    
-    return data.publicUrl;
+    return toLearningPublicStorageUrl(imagePath);
   };
 
   const getTextLength = (htmlContent: string | undefined) => {

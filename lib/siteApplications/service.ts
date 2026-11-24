@@ -10,6 +10,8 @@ import type {
 import { toPublicForm } from './forms';
 import {
   getEventApplicationPath,
+  SITE_APPLICATION_FORM_COLUMNS,
+  SITE_APPLICATION_FORM_FIELD_COLUMNS,
   siteApplicationsDb,
 } from './config';
 import {
@@ -45,7 +47,7 @@ export async function getPublicFormByEventSlug(eventSlug: string, locale: string
 
   const { data: forms, error: formError } = await supabase
     .from(siteApplicationsDb.forms)
-    .select('*')
+    .select(SITE_APPLICATION_FORM_COLUMNS)
     .eq('event_id', event.id)
     .eq('is_active', true)
     .order('updated_at', { ascending: false })
@@ -59,7 +61,7 @@ export async function getPublicFormByEventSlug(eventSlug: string, locale: string
   if (!form) {
     const { data: candidates } = await supabase
       .from(siteApplicationsDb.forms)
-      .select('*')
+      .select(SITE_APPLICATION_FORM_COLUMNS)
       .eq('is_active', true)
       .order('updated_at', { ascending: false })
       .limit(50);
@@ -162,7 +164,7 @@ async function loadFormFields(formId: unknown) {
   const supabase = getSiteApplicationsSupabase();
   const { data: fields, error: fieldsError } = await supabase
     .from(siteApplicationsDb.formFields)
-    .select('*')
+    .select(SITE_APPLICATION_FORM_FIELD_COLUMNS)
     .eq('form_id', formId)
     .order('order_index', { ascending: true });
 
@@ -189,7 +191,7 @@ export async function getPublicFormByCourseSlug(courseSlug: string, locale: stri
 
   const byCourse = await supabase
     .from(siteApplicationsDb.forms)
-    .select('*')
+    .select(SITE_APPLICATION_FORM_COLUMNS)
     .eq('course_id', course.id)
     .eq('is_active', true)
     .order('updated_at', { ascending: false })
@@ -201,7 +203,7 @@ export async function getPublicFormByCourseSlug(courseSlug: string, locale: stri
     const slugs = buildCourseFormSlugs(course.slug);
     const bySlug = await supabase
       .from(siteApplicationsDb.forms)
-      .select('*')
+      .select(SITE_APPLICATION_FORM_COLUMNS)
       .or(`slug_tr.eq.${slugs.slug_tr},slug_en.eq.${slugs.slug_en}`)
       .eq('is_active', true)
       .order('updated_at', { ascending: false })
@@ -215,7 +217,7 @@ export async function getPublicFormByCourseSlug(courseSlug: string, locale: stri
   if (!form) {
     const { data: candidates, error: candidatesError } = await supabase
       .from(siteApplicationsDb.forms)
-      .select('*')
+      .select(SITE_APPLICATION_FORM_COLUMNS)
       .eq('is_active', true)
       .is('event_id', null)
       .order('updated_at', { ascending: false })

@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
         status: 'pending',
         admin_notes: `legal_consent:${JSON.stringify(legalConsent)}`,
       })
-      .select()
+      .select('id, first_name, last_name, email, phone, school, grade, motivation, communication, team_experience, cv_storage_path, cv_file_name, cv_mime_type, cv_file_size, status, admin_notes, reviewed_by, reviewed_at, source, ip_address, user_agent, legacy_apply_id, created_at, updated_at, position')
       .single();
 
     if (error) {
@@ -285,7 +285,7 @@ export async function GET(request: NextRequest) {
     if (applicationId) {
       const { data: application, error } = await supabaseAdmin
         .from('internship_applications')
-        .select('*')
+        .select('id, first_name, last_name, email, phone, school, grade, motivation, communication, team_experience, cv_storage_path, cv_file_name, cv_mime_type, cv_file_size, status, admin_notes, reviewed_by, reviewed_at, source, ip_address, user_agent, legacy_apply_id, created_at, updated_at, position')
         .eq('id', applicationId)
         .single();
 
@@ -301,7 +301,7 @@ export async function GET(request: NextRequest) {
       if (withVotes) {
         const { data: votesData } = await supabaseAdmin
           .from('internship_votes')
-          .select('*')
+          .select('id, application_id, voter_id, voter_email, voter_name, vote_type, score, comment, created_at, updated_at')
           .eq('application_id', applicationId);
         votes = votesData;
       }
@@ -309,7 +309,7 @@ export async function GET(request: NextRequest) {
       // Status history getir
       const { data: history } = await supabaseAdmin
         .from('internship_status_history')
-        .select('*')
+        .select('id, application_id, old_status, new_status, changed_by, changed_by_email, reason, created_at')
         .eq('application_id', applicationId)
         .order('created_at', { ascending: false });
 
@@ -324,7 +324,7 @@ export async function GET(request: NextRequest) {
     // Liste getir
     let query = supabaseAdmin
       .from('internship_applications')
-      .select('*')
+      .select('id, first_name, last_name, email, phone, school, grade, motivation, communication, team_experience, cv_storage_path, cv_file_name, cv_mime_type, cv_file_size, status, admin_notes, reviewed_by, reviewed_at, source, ip_address, user_agent, legacy_apply_id, created_at, updated_at, position')
       .order('created_at', { ascending: false })
       .limit(limit);
 
@@ -420,7 +420,7 @@ export async function PATCH(request: NextRequest) {
       .from('internship_applications')
       .update(updateData)
       .eq('id', applicationId)
-      .select()
+      .select('id, first_name, last_name, email, phone, school, grade, motivation, communication, team_experience, cv_storage_path, cv_file_name, cv_mime_type, cv_file_size, status, admin_notes, reviewed_by, reviewed_at, source, ip_address, user_agent, legacy_apply_id, created_at, updated_at, position')
       .single();
 
     if (error) {

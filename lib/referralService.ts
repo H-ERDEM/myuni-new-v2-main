@@ -193,7 +193,7 @@ export async function getReferralStats(userId: string): Promise<ReferralStats> {
     // Bu kodla yapılan tüm kullanımları getir
     const { data: usedCodes, error } = await supabase
       .from('discount_codes')
-      .select('*')
+      .select('id')
       .eq('code', referralCode.code)
       .eq('is_used', true);
 
@@ -204,7 +204,7 @@ export async function getReferralStats(userId: string): Promise<ReferralStats> {
     // Kullanıcının kazandığı ödül kodlarını getir (discount_amount filtresi yok — oran değişirse kaybolmaz)
     const { data: rewardCodes, error: rewardError } = await supabase
       .from('discount_codes')
-      .select('*')
+      .select('id')
       .eq('influencer_id', userId)
       .eq('is_referral', false);
 
@@ -258,7 +258,7 @@ export async function getUserRewardCodes(userId: string): Promise<DiscountCode[]
   try {
     const { data, error } = await supabase
       .from('discount_codes')
-      .select('*')
+      .select('id, code, discount_amount, discount_type, valid_until, applicable_courses, created_at, max_usage, usage_count, is_used, used_by, used_at, influencer_id, campaign_id, commission, is_referral')
       .eq('influencer_id', userId)
       .eq('is_referral', false)
       .order('created_at', { ascending: false });
@@ -281,7 +281,7 @@ export async function handleReferralUsage(code: string, userId: string): Promise
     // Referral kodunu bul ve kullan
     const { data: discountCode, error: findError } = await supabase
       .from('discount_codes')
-      .select('*')
+      .select('id, influencer_id')
       .eq('code', code)
       .eq('is_referral', true)
       .single();
@@ -317,7 +317,7 @@ export async function handleReferralUsage(code: string, userId: string): Promise
         used_at: new Date().toISOString()
       })
       .eq('id', discountCode.id)
-      .select();
+      .select('id, code, discount_amount, discount_type, valid_until, applicable_courses, created_at, is_used, used_by, used_at, influencer_id, campaign_id, commission, is_referral, max_usage, usage_count, is_campaign, campaign_name, campaign_description, campaign_cover_image, campaign_slug, campaign_name_en, campaign_description_en, remaining_balance, has_balance_limit, owner_id, minimum_order_amount, full_course_only, maximum_order_amount, initial_balance');
 
     console.log('Update result:', updateResult);
     console.log('Update error:', updateError);
@@ -495,7 +495,7 @@ export async function createRewardCodeAfterPayment(userId: string): Promise<{ su
     console.log('=== DEBUG: KULLANICI KODLARI KONTROL ===');
     const { data: allUsedCodes, error: allCodesError } = await supabase
       .from('discount_codes')
-      .select('*')
+      .select('id, code, discount_amount, discount_type, valid_until, applicable_courses, created_at, is_used, used_by, used_at, influencer_id, campaign_id, commission, is_referral, max_usage, usage_count, is_campaign, campaign_name, campaign_description, campaign_cover_image, campaign_slug, campaign_name_en, campaign_description_en, remaining_balance, has_balance_limit, owner_id, minimum_order_amount, full_course_only, maximum_order_amount, initial_balance')
       .eq('used_by', userId)
       .eq('is_used', true);
     
@@ -505,7 +505,7 @@ export async function createRewardCodeAfterPayment(userId: string): Promise<{ su
     // Referral kodları için ayrı sorgu
     const { data: referralCodes, error: referralCodesError } = await supabase
       .from('discount_codes')
-      .select('*')
+      .select('id, code, discount_amount, discount_type, valid_until, applicable_courses, created_at, is_used, used_by, used_at, influencer_id, campaign_id, commission, is_referral, max_usage, usage_count, is_campaign, campaign_name, campaign_description, campaign_cover_image, campaign_slug, campaign_name_en, campaign_description_en, remaining_balance, has_balance_limit, owner_id, minimum_order_amount, full_course_only, maximum_order_amount, initial_balance')
       .eq('used_by', userId)
       .eq('is_used', true)
       .eq('is_referral', true);

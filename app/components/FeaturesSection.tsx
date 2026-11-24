@@ -1,6 +1,5 @@
 import React from 'react';
 import { Code, Database, Cpu, Globe, Lock, BarChart, ArrowRight, Download, Cloud, Users, Layers, Zap } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
 
 // Feature arayüzü
@@ -43,60 +42,7 @@ interface FeaturesSectionProps {
 type SupportedLocale = 'tr' | 'en';
 
 async function getFeaturesContent(locale: string) {
-  try {
-    // Database sorgusu
-    const { data, error } = await supabase
-      .from('features_content')
-      .select('*')
-      .eq('locale', locale)
-      .single();
-
-    if (error) {
-      console.error('Error fetching features content:', error);
-      // Varsayılan içeriğe geçiş yap, hata fırlatma
-      return getDefaultFeaturesContent(locale);
-    }
-    
-    // JSONB veri tiplerini işle
-    let parsedFeatures = data.features;
-    let parsedAdditionalFeatures = data.additional_features;
-    
-    // Eğer features bir string ise, parse et
-    if (typeof data.features === 'string') {
-      try {
-        parsedFeatures = JSON.parse(data.features);
-      } catch (e) {
-        console.error('Error parsing features JSON:', e);
-        parsedFeatures = getDefaultFeaturesContent(locale).features;
-      }
-    }
-    
-    // Eğer additional_features bir string ise, parse et
-    if (typeof data.additional_features === 'string') {
-      try {
-        parsedAdditionalFeatures = JSON.parse(data.additional_features);
-      } catch (e) {
-        console.error('Error parsing additional_features JSON:', e);
-        parsedAdditionalFeatures = getDefaultFeaturesContent(locale).additional_features;
-      }
-    }
-
-    // Database verilerini dön
-    return {
-      section_title: data.section_title,
-      section_description: data.section_description,
-      features: parsedFeatures,
-      additional_features: parsedAdditionalFeatures,
-      cta_title: data.cta_title,
-      cta_description: data.cta_description,
-      cta_button_text: data.cta_button_text,
-      cta_button_link: data.cta_button_link
-    };
-  } catch (error) {
-    console.error('Failed to fetch features content:', error);
-    // Hata durumunda varsayılan içerik dön
-    return getDefaultFeaturesContent(locale);
-  }
+  return getDefaultFeaturesContent(locale);
 }
 
 // Varsayılan içerik sağlayan fonksiyon

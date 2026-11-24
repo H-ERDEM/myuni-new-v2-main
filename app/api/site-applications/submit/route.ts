@@ -4,6 +4,8 @@ import { getLearningAdminClient } from '@/lib/supabase/adminDatabases';
 import {
   computeAttachmentExpiresAt,
   extractContactFromSubmission,
+  SITE_APPLICATION_FORM_COLUMNS,
+  SITE_APPLICATION_FORM_FIELD_COLUMNS,
   siteApplicationsDb,
   validateSubmissionFields,
 } from '@/lib/siteApplications';
@@ -42,7 +44,7 @@ async function resolveForm(
     let form: Record<string, unknown> | null = null;
     const byCourse = await supabase
       .from(siteApplicationsDb.forms)
-      .select('*')
+      .select(SITE_APPLICATION_FORM_COLUMNS)
       .eq('course_id', course.id)
       .eq('is_active', true)
       .order('updated_at', { ascending: false })
@@ -54,7 +56,7 @@ async function resolveForm(
       const normalized = courseSlug.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-');
       const bySlug = await supabase
         .from(siteApplicationsDb.forms)
-        .select('*')
+        .select(SITE_APPLICATION_FORM_COLUMNS)
         .or(`slug_tr.eq.kurs-${normalized},slug_en.eq.course-${normalized}`)
         .eq('is_active', true)
         .order('updated_at', { ascending: false })
@@ -81,7 +83,7 @@ async function resolveForm(
 
     const { data: forms, error } = await supabase
       .from(siteApplicationsDb.forms)
-      .select('*')
+      .select(SITE_APPLICATION_FORM_COLUMNS)
       .eq('event_id', event.id)
       .eq('is_active', true)
       .order('updated_at', { ascending: false })
@@ -98,7 +100,7 @@ async function resolveForm(
   const slugColumn = locale === 'en' ? 'slug_en' : 'slug_tr';
   const { data: form, error: formError } = await supabase
     .from(siteApplicationsDb.forms)
-    .select('*')
+    .select(SITE_APPLICATION_FORM_COLUMNS)
     .eq(slugColumn, formSlug)
     .eq('is_active', true)
     .eq('show_on_website', true)
@@ -186,7 +188,7 @@ export async function POST(request: NextRequest) {
 
     const { data: fields, error: fieldsError } = await supabase
       .from(siteApplicationsDb.formFields)
-      .select('*')
+      .select(SITE_APPLICATION_FORM_FIELD_COLUMNS)
       .eq('form_id', form.id)
       .order('order_index', { ascending: true });
 

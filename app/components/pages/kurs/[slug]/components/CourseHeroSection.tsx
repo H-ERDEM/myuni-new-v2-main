@@ -3,9 +3,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { Play, RotateCcw, CheckCircle, RotateCcw as Replay } from 'lucide-react';
-import { getLearningSupabaseClient } from '@/lib/supabase/databases';
-
-const supabase = getLearningSupabaseClient();
 import { getUserLessonProgress, updateUserProgress } from '@/lib/progressApi';
 
 // Use the existing global types from your global.d.ts file
@@ -147,103 +144,34 @@ const CourseHeroSection: React.FC<CourseHeroSectionProps> = ({
   const fetchCourseData = useCallback(async () => {
     try {
       setLoading(true);
-      let query = supabase
-        .from('myuni_courses')
-        .select('*')
-        .eq('is_active', true);
-
-      if (courseId && courseId !== 'undefined') {
-        query = query.eq('id', courseId);
-      } else if (courseSlug && courseSlug !== 'undefined') {
-        query = query.eq('slug', courseSlug);
-      } else {
+      if (!courseSlug || courseSlug === 'undefined') {
         throw new Error('Course ID or slug is required');
       }
-
-      const { data, error } = await query.single();
-
-      if (error) {
-        throw new Error(`Failed to fetch course: ${error.message}`);
+      const response = await fetch(`/api/public/courses/${encodeURIComponent(courseSlug)}`);
+      const payload = await response.json();
+      if (!response.ok || !payload.success || !payload.course) {
+        throw new Error(payload.error || 'Course not found');
       }
-
-      if (data) {
-        setCourseData(data);
-        setCourseDataLoaded(true);
-      } else {
-        throw new Error('Course not found');
-      }
+      setCourseData(payload.course as CourseData);
+      setCourseDataLoaded(true);
     } catch (err) {
       console.error('Course data fetch error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load course data');
     }
-  }, [courseId, courseSlug]);
+  }, [courseSlug]);
 
-  const fetchFirstVideoWithCourseId = useCallback(async (cId: string) => {
+  const fetchFirstVideoWithCourseId = useCallback(async (_cId: string) => {
     try {
       setLoading(true);
-      // First get the first section of the course
-      const { data: sections, error: sectionsError } = await supabase
-        .from('myuni_course_sections')
-        .select('id')
-        .eq('course_id', cId)
-        .eq('is_active', true)
-        .order('order_index', { ascending: true })
-        .limit(1);
-
-      if (sectionsError) {
-        console.error('Sections query error:', sectionsError);
-        throw new Error(`Failed to fetch sections: ${sectionsError.message}`);
+      const slug = courseData?.slug || courseSlug;
+      if (!slug) throw new Error('Course slug is required');
+      const response = await fetch(`/api/public/courses/${encodeURIComponent(slug)}/preview`);
+      const payload = await response.json();
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error || 'Failed to load course preview');
       }
-
-      if (!sections || sections.length === 0) {
-        console.log('No sections found for this course, displaying banner instead.');
-        setFirstVideo(null);
-        setError(null);
-        return;
-      }
-
-      // Then get the first lesson of the first section
-      const { data: lessons, error: lessonsError } = await supabase
-        .from('myuni_course_lessons')
-        .select('id')
-        .eq('section_id', sections[0].id)
-        .eq('is_active', true)
-        .order('order_index', { ascending: true })
-        .limit(1);
-
-      if (lessonsError) {
-        console.error('Lessons query error:', lessonsError);
-        throw new Error(`Failed to fetch lessons: ${lessonsError.message}`);
-      }
-
-      if (!lessons || lessons.length === 0) {
-        console.log('No lessons found for this course, displaying banner instead.');
-        setFirstVideo(null);
-        setError(null);
-        return;
-      }
-
-      // Finally get the first video of the first lesson
-      const { data: videos, error: videosError } = await supabase
-        .from('myuni_videos')
-        .select('id, lesson_id, title, description, vimeo_id, video_url, thumbnail_url, duration_seconds, order_index, vimeo_hash')
-        .eq('lesson_id', lessons[0].id)
-        .order('order_index', { ascending: true })
-        .limit(1);
-
-      if (videosError) {
-        console.error('Videos query error:', videosError);
-        throw new Error(`Failed to fetch videos: ${videosError.message}`);
-      }
-
-      if (videos && videos.length > 0) {
-        setFirstVideo(videos[0]);
-        setError(null);
-      } else {
-        console.log('No preview video found for this course, displaying banner instead.');
-        setFirstVideo(null);
-        setError(null);
-      }
+      setFirstVideo((payload.video as VimeoVideo | null) || null);
+      setError(null);
     } catch (err) {
       console.error('First video fetch with course ID error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load course preview video');
@@ -251,7 +179,7 @@ const CourseHeroSection: React.FC<CourseHeroSectionProps> = ({
       setLoading(false);
       setIsInitialized(true);
     }
-  }, []);
+  }, [courseData?.slug, courseSlug]);
 
   const fetchFirstVideoBySlug = useCallback(async () => {
     try {
@@ -263,32 +191,14 @@ const CourseHeroSection: React.FC<CourseHeroSectionProps> = ({
         throw new Error('Invalid course slug provided');
       }
 
-      // First get the course by slug to get the course ID
-      const { data: courses, error: courseError } = await supabase
-        .from('myuni_courses')
-        .select('id')
-        .eq('slug', courseSlug)
-        .eq('is_active', true)
-        .single();
-
-      if (courseError) {
-        console.error('Course query error:', courseError);
-        throw new Error(`Failed to fetch course: ${courseError.message}`);
-      }
-
-      if (!courses) {
-        throw new Error('Course not found');
-      }
-
-      // Now fetch first video using the course ID
-      await fetchFirstVideoWithCourseId(courses.id);
+      await fetchFirstVideoWithCourseId(courseData?.id || courseId || 'preview');
     } catch (err) {
       console.error('First video fetch by slug error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load course preview video');
       setLoading(false);
       setIsInitialized(true);
     }
-  }, [courseSlug, fetchFirstVideoWithCourseId]);
+  }, [courseData?.id, courseId, courseSlug, fetchFirstVideoWithCourseId]);
 
   const fetchFirstVideo = useCallback(async () => {
     try {

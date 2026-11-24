@@ -18,7 +18,7 @@ export async function GET(_request: NextRequest) {
 
     const { data: userReferralCode, error: userCodeError } = await supabaseAdmin
       .from('discount_codes')
-      .select('*')
+      .select('id, code, discount_amount, discount_type, valid_until, applicable_courses, created_at, is_used, used_by, used_at, influencer_id, campaign_id, commission, is_referral, max_usage, usage_count, is_campaign, campaign_name, campaign_description, campaign_cover_image, campaign_slug, campaign_name_en, campaign_description_en, remaining_balance, has_balance_limit, owner_id, minimum_order_amount, full_course_only, maximum_order_amount, initial_balance')
       .eq('influencer_id', debugUserId)
       .eq('is_referral', true)
       .not('code', 'like', 'USAGE_%')
@@ -26,21 +26,21 @@ export async function GET(_request: NextRequest) {
 
     const { data: usedReferralCodes, error: usedCodesError } = await supabaseAdmin
       .from('discount_codes')
-      .select('*')
+      .select('id, code, discount_amount, discount_type, valid_until, applicable_courses, created_at, is_used, used_by, used_at, influencer_id, campaign_id, commission, is_referral, max_usage, usage_count, is_campaign, campaign_name, campaign_description, campaign_cover_image, campaign_slug, campaign_name_en, campaign_description_en, remaining_balance, has_balance_limit, owner_id, minimum_order_amount, full_course_only, maximum_order_amount, initial_balance')
       .eq('used_by', debugUserId)
       .eq('is_referral', true)
       .eq('is_used', true);
 
     const { data: rewardCodes, error: rewardError } = await supabaseAdmin
       .from('discount_codes')
-      .select('*')
+      .select('id, code, discount_amount, discount_type, valid_until, applicable_courses, created_at, is_used, used_by, used_at, influencer_id, campaign_id, commission, is_referral, max_usage, usage_count, is_campaign, campaign_name, campaign_description, campaign_cover_image, campaign_slug, campaign_name_en, campaign_description_en, remaining_balance, has_balance_limit, owner_id, minimum_order_amount, full_course_only, maximum_order_amount, initial_balance')
       .eq('influencer_id', debugUserId)
       .eq('is_referral', false)
       .eq('discount_amount', 15);
 
     const { data: allUsedCodes, error: allCodesError } = await supabaseAdmin
       .from('discount_codes')
-      .select('*')
+      .select('id, code, discount_amount, discount_type, valid_until, applicable_courses, created_at, is_used, used_by, used_at, influencer_id, campaign_id, commission, is_referral, max_usage, usage_count, is_campaign, campaign_name, campaign_description, campaign_cover_image, campaign_slug, campaign_name_en, campaign_description_en, remaining_balance, has_balance_limit, owner_id, minimum_order_amount, full_course_only, maximum_order_amount, initial_balance')
       .eq('used_by', debugUserId)
       .eq('is_used', true);
 

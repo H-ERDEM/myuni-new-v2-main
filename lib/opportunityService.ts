@@ -109,7 +109,7 @@ async function loadOpportunityRelations(
       .from('myuni_opportunity_courses')
       .select('opportunity_id, course_id')
       .in('opportunity_id', ids),
-    supabaseAdmin.from('myuni_career_tags').select('*'),
+    supabaseAdmin.from('myuni_career_tags').select('id, slug, name, created_at'),
   ]);
 
   const tagMap = new Map(
@@ -190,7 +190,7 @@ export async function getActiveOpportunities(
 ): Promise<Opportunity[]> {
   const { data, error } = await supabaseAdmin
     .from('myuni_opportunities')
-    .select('*')
+    .select('id, slug, title, description, company_name, location, work_mode, application_deadline, form_config_id, is_active, is_featured, order_index, created_at, updated_at, panel_organization_id, site_form_id, opportunity_type, created_by, banner_url, thumbnail_url')
     .eq('is_active', true)
     .order('is_featured', { ascending: false })
     .order('order_index', { ascending: true })
@@ -210,7 +210,7 @@ export async function getOpportunityBySlug(
 ): Promise<Opportunity | null> {
   let query = supabaseAdmin
     .from('myuni_opportunities')
-    .select('*')
+    .select('id, slug, title, description, company_name, location, work_mode, application_deadline, form_config_id, is_active, is_featured, order_index, created_at, updated_at, panel_organization_id, site_form_id, opportunity_type, created_by, banner_url, thumbnail_url')
     .eq('slug', slug);
 
   if (options?.requireActive !== false) {
@@ -312,7 +312,7 @@ export async function canUserApply(
 ): Promise<{ allowed: boolean; reasons: string[] }> {
   const { data: opp } = await supabaseAdmin
     .from('myuni_opportunities')
-    .select('*')
+    .select('id, slug, title, description, company_name, location, work_mode, application_deadline, form_config_id, is_active, is_featured, order_index, created_at, updated_at, panel_organization_id, site_form_id, opportunity_type, created_by, banner_url, thumbnail_url')
     .eq('id', opportunityId)
     .eq('is_active', true)
     .maybeSingle();
@@ -332,7 +332,7 @@ export async function canUserApply(
 export async function getUserApplications(userId: string) {
   const { data, error } = await supabaseAdmin
     .from('myuni_applications')
-    .select('*')
+    .select('id, context_type, context_id, context_slug, context_title, form_config_id, user_id, applicant_email, submission_data, cv_storage_path, cv_file_name, status, admin_notes, reviewed_by, reviewed_by_email, reviewed_at, user_agent, created_at, updated_at')
     .eq('context_type', 'opportunity')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
@@ -348,7 +348,7 @@ export async function getUserApplications(userId: string) {
   const oppIds = apps.map((a) => a.context_id);
   const { data: opps } = await supabaseAdmin
     .from('myuni_opportunities')
-    .select('*')
+    .select('id, slug, title, description, company_name, location, work_mode, application_deadline, form_config_id, is_active, is_featured, order_index, created_at, updated_at, panel_organization_id, site_form_id, opportunity_type, created_by, banner_url, thumbnail_url')
     .in('id', oppIds);
 
   const oppMap = new Map((opps || []).map((o) => [o.id as string, o]));
@@ -363,7 +363,7 @@ export async function getUserApplications(userId: string) {
 export async function getAllCareerTags(): Promise<CareerTag[]> {
   const { data, error } = await supabaseAdmin
     .from('myuni_career_tags')
-    .select('*')
+    .select('id, slug, name, created_at')
     .order('slug');
 
   if (error) return [];

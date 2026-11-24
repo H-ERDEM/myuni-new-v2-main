@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     const formName = searchParams.get('form_name') || 'myuni_internship';
     const configId = searchParams.get('id');
 
-    let configQuery = supabaseAdmin.from('internship_form_configs').select('*').eq('is_active', true);
+    let configQuery = supabaseAdmin.from('internship_form_configs').select('id, form_name, title, subtitle, submit_button_text, success_message, privacy_notice, terms_and_conditions, is_active, created_at, updated_at').eq('is_active', true);
 
     if (configId) {
       configQuery = configQuery.eq('id', configId);
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     // Form alanlarını getir
     const { data: fields, error: fieldsError } = await supabaseAdmin
       .from('internship_form_fields')
-      .select('*')
+      .select('id, form_config_id, field_key, field_type, label, placeholder, is_required, validation_rules, options, sort_order, grid_columns, is_active, created_at, updated_at')
       .eq('form_config_id', config.id)
       .eq('is_active', true)
       .order('sort_order', { ascending: true });
@@ -78,7 +78,7 @@ export async function PATCH(request: NextRequest) {
         updated_at: new Date().toISOString()
       })
       .eq('id', configId)
-      .select()
+      .select('id, form_name, title, subtitle, submit_button_text, success_message, privacy_notice, terms_and_conditions, is_active, created_at, updated_at')
       .single();
 
     if (error) {

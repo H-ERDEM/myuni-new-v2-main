@@ -24,8 +24,13 @@ async function fetchEventEnrollmentCountMap(eventIds: string[]): Promise<Map<str
 
   try {
     if (typeof window === 'undefined') {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      const supabaseUrl =
+        process.env.NEXT_PUBLIC_SUPABASE_LEARNING_URL ??
+        process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const serviceKey =
+        process.env.SUPABASE_LEARNING_SECRET_KEY ??
+        process.env.SUPABASE_SECRET_KEY ??
+        process.env.SUPABASE_SERVICE_ROLE_KEY;
       if (!supabaseUrl || !serviceKey) {
         console.warn('Missing SUPABASE_SERVICE_ROLE_KEY for event enrollment counts');
         return map;
@@ -65,8 +70,18 @@ const PUBLIC_EVENT_COLUMNS = `
   start_date, end_date, timezone, duration_minutes, is_online, location_name,
   location_address, is_paid, price, max_attendees,
   registration_deadline, is_registration_open, thumbnail_url, banner_url,
-  status, is_active, is_featured, organizer_email,
+  meeting_url, status, is_active, is_featured, organizer_email,
   organizer_linkedin, organizer_image_url, created_at, updated_at
+`;
+
+const EVENT_SECTION_COLUMNS = `
+  id, event_id, title, description, start_time, end_time, duration_minutes,
+  speaker_name, speaker_title, speaker_bio, speaker_image_url,
+  speaker_linkedin_url, speaker_email, location_name, location_details,
+  meeting_room, meeting_url, is_featured, is_mandatory, max_attendees,
+  requires_registration, materials_url, slides_url, recording_url,
+  additional_resources, tags, category, difficulty_level, language,
+  order_index, is_active, created_at, updated_at
 `;
 
 // ========================================
@@ -200,7 +215,7 @@ export async function getEventSections(eventId: string): Promise<EventSection[]>
 
     const { data: sections, error } = await supabase
       .from('myuni_event_sections')
-      .select('*')
+      .select(EVENT_SECTION_COLUMNS)
       .eq('event_id', eventId)
       .eq('is_active', true)
       .order('start_time', { ascending: true });
@@ -229,7 +244,7 @@ export async function getEventSections(eventId: string): Promise<EventSection[]>
     // Fetch all lessons for these sections
     const { data: eventLessons } = await supabase
       .from('myuni_event_lessons')
-      .select('*')
+      .select('id, title, lesson_type, duration_minutes, order_index, section_id')
       .in('section_id', sectionIds)
       .eq('is_active', true);
 
@@ -337,7 +352,7 @@ export async function getEventLessonContent(sectionId: string) {
     // Get videos for this section
     const { data: videos, error: videosError } = await supabase
       .from('myuni_event_videos')
-      .select('*')
+      .select('id, lesson_id, title, description, vimeo_id, video_url, thumbnail_url, duration_seconds, order_index')
       .eq('lesson_id', sectionId)
       .order('order_index', { ascending: true });
 
@@ -401,7 +416,7 @@ export async function getEventWithContent(eventSlug: string) {
 
     const { data: event, error: eventError } = await supabase
       .from('myuni_events')
-      .select('*')
+      .select(PUBLIC_EVENT_COLUMNS)
       .eq('slug', eventSlug)
       .eq('is_active', true)
       .single();
@@ -679,7 +694,7 @@ export async function getEventBySlug(slug: string, locale: string = 'tr') {
 
     const { data, error } = await supabase
       .from('myuni_events')
-      .select('*')
+      .select(PUBLIC_EVENT_COLUMNS)
       .eq('slug', slug)
       .eq('is_active', true)
       .single();
@@ -744,7 +759,6 @@ export async function getEventBySlug(slug: string, locale: string = 'tr') {
       status: data.status || 'upcoming',
       is_active: data.is_active,
       is_featured: data.is_featured || false,
-      organizer_description: data.organizer_description,
       organizer_email: data.organizer_email,
       organizer_linkedin: data.organizer_linkedin,
       organizer_image_url: data.organizer_image_url,
@@ -773,7 +787,7 @@ export async function getUserEventEnrollment(userId: string, eventId: string) {
 
     const { data, error } = await supabase
       .from('myuni_event_enrollments')
-      .select('*')
+      .select('id, user_id, event_id, enrolled_at, attendance_status, welcome_shown, notes')
       .eq('user_id', userId)
       .eq('event_id', eventId)
       .single();
@@ -798,7 +812,7 @@ export async function enrollUserToEvent(userId: string, eventId: string) {
         enrolled_at: new Date().toISOString(),
         attendance_status: 'registered'
       })
-      .select()
+      .select('id, user_id, event_id, enrolled_at, attendance_status, notes, welcome_shown')
       .single();
 
     if (error) throw error;

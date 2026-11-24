@@ -20,7 +20,7 @@ export async function PATCH(
       .from('myuni_opportunities')
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq('id', id)
-      .select()
+      .select('id, slug, title, description, company_name, location, work_mode, application_deadline, form_config_id, is_active, is_featured, order_index, created_at, updated_at, panel_organization_id, site_form_id, opportunity_type, created_by, banner_url, thumbnail_url')
       .single();
 
     if (error) {

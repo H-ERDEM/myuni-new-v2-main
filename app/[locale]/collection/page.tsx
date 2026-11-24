@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
 import { BookOpen, FileText, Download, Filter, Search, Tag, ArrowRight, ShoppingBag } from 'lucide-react';
 
 // Tip Tanımlamaları
@@ -107,11 +106,14 @@ export default function CollectionPage() {
         setLoading(true);
         
         // İki isteği aynı anda paralel başlat
-        const productsPromise = supabase
-          .from('myuni_products')
-          .select('*')
-          .eq('is_active', true)
-          .order('created_at', { ascending: false });
+        const productsPromise = fetch('/api/public/products?limit=100')
+          .then(async (response) => {
+            const payload = await response.json();
+            if (!response.ok || !payload.success) {
+              throw new Error(payload.error || 'Products could not be loaded');
+            }
+            return payload.products as DigitalProduct[];
+          });
 
         const purchasesPromise = fetch('/api/collection/my-purchases')
           .then(res => res.json())
@@ -125,11 +127,7 @@ export default function CollectionPage() {
           purchasesPromise
         ]);
 
-        if (productsResult.error) {
-          console.error("Ürünler çekilirken hata oluştu:", productsResult.error);
-        } else {
-          setProducts(productsResult.data || []);
-        }
+        setProducts(productsResult || []);
 
         if (purchasesResult.purchasedIds) {
           setPurchasedIds(new Set(purchasesResult.purchasedIds));

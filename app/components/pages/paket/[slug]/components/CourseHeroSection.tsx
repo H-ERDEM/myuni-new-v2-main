@@ -3,9 +3,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { Play, RotateCcw, CheckCircle, RotateCcw as Replay } from 'lucide-react';
-import { getLearningSupabaseClient } from '@/lib/supabase/databases';
-
-const supabase = getLearningSupabaseClient();
 
 // Use the existing global types from your global.d.ts file
 type VimeoPlayer = import('../../../../../types/global').VimeoPlayer;
@@ -112,30 +109,21 @@ const CourseHeroSection: React.FC<CourseHeroSectionProps> = ({
   const fetchCourseData = useCallback(async () => {
     try {
       setLoading(true);
-      let query = supabase
-        .from('myuni_packages')
-        .select('*')
-        .eq('is_active', true);
-
-      if (courseId && courseId !== 'undefined') {
-        query = query.eq('id', courseId);
-      } else if (courseSlug && courseSlug !== 'undefined') {
-        query = query.eq('slug', courseSlug);
-      } else {
+      if (!courseSlug || courseSlug === 'undefined') {
         throw new Error('Package ID or slug is required');
       }
-
-      const { data, error } = await query.single();
-
-      if (!error && data) {
-        setCourseData(data);
+      const response = await fetch(`/api/public/packages/${encodeURIComponent(courseSlug)}`);
+      const payload = await response.json();
+      if (!response.ok || !payload.success || !payload.package) {
+        throw new Error(payload.error || 'Package not found');
       }
+      setCourseData(payload.package as CourseData);
     } catch (err) {
       console.error('Package data fetch error:', err);
     } finally {
       setLoading(false);
     }
-  }, [courseId, courseSlug]);
+  }, [courseSlug]);
 
   useEffect(() => {
     if (course) {

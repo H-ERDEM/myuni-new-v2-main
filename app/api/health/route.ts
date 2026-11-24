@@ -51,11 +51,25 @@ export async function GET() {
   const paymentConfigured = Boolean(
     process.env.IYZICO_API_KEY && process.env.IYZICO_SECRET_KEY && process.env.IYZICO_BASE_URL,
   );
+  const redisRateLimitConfigured = Boolean(
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN,
+  );
+  const redisRequired = process.env.VERCEL === '1';
   const checks = {
     databases: { identity, learning, forms },
     payment: { ok: paymentConfigured },
+    rateLimit: {
+      ok: redisRateLimitConfigured || !redisRequired,
+      backend: redisRateLimitConfigured ? 'redis' : 'memory',
+      required: redisRequired,
+    },
   };
-  const ok = identity.ok && learning.ok && forms.ok && paymentConfigured;
+  const ok =
+    identity.ok &&
+    learning.ok &&
+    forms.ok &&
+    paymentConfigured &&
+    checks.rateLimit.ok;
 
   return NextResponse.json(
     {

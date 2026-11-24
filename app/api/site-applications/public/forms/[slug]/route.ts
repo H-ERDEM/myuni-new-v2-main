@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSiteApplicationsSupabase } from '@/lib/supabaseSiteApplications';
-import { siteApplicationsDb } from '@/lib/siteApplications/config';
+import {
+  SITE_APPLICATION_FORM_COLUMNS,
+  SITE_APPLICATION_FORM_FIELD_COLUMNS,
+  siteApplicationsDb,
+} from '@/lib/siteApplications/config';
 import { toPublicForm } from '@/lib/siteApplications/forms';
 import type { SiteApplicationForm, SiteApplicationFormField } from '@/app/types/siteApplicationForms';
 
@@ -16,7 +20,7 @@ export async function GET(
     const supabase = getSiteApplicationsSupabase();
     const { data: form, error } = await supabase
       .from(siteApplicationsDb.forms)
-      .select('*')
+      .select(SITE_APPLICATION_FORM_COLUMNS)
       .eq(slugColumn, slug)
       .eq('is_active', true)
       .eq('show_on_website', true)
@@ -28,7 +32,7 @@ export async function GET(
 
     const { data: fields, error: fieldsError } = await supabase
       .from(siteApplicationsDb.formFields)
-      .select('*')
+      .select(SITE_APPLICATION_FORM_FIELD_COLUMNS)
       .eq('form_id', form.id)
       .order('order_index', { ascending: true });
 

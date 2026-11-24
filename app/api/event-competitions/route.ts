@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 
     const { data: competition, error } = await supabaseAdmin
       .from('myuni_event_competitions')
-      .select('*')
+      .select('id, lesson_id, title, duration_minutes, questions')
       .eq('lesson_id', lessonId)
       .eq('is_active', true)
       .maybeSingle();

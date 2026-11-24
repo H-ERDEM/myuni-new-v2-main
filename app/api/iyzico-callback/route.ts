@@ -197,7 +197,7 @@ export async function POST(request: Request) {
                 // indirgiyordu.
                 const { data: order, error: orderFetchError } = await supabase
                   .from('orders')
-                  .select('*')
+                  .select('id, orderid, courseid, useremail, coursename, amount, status, paymentid, paymentmethod, created_at, updated_at, enrolled, enrollmentid, notes, custom_data, discountcode, discountamount')
                   .eq('orderid', orderId)
                   .maybeSingle();
                 if (orderFetchError) {
@@ -227,7 +227,7 @@ export async function POST(request: Request) {
                     .update({ status: 'processing', updated_at: new Date().toISOString() })
                     .eq('orderid', orderId)
                     .in('status', ['pending', 'failed', 'payment_error', 'payment_review', 'cancelled'])
-                    .select()
+                    .select('id, orderid, courseid, useremail, coursename, amount, status, paymentid, paymentmethod, created_at, updated_at, enrolled, enrollmentid, notes, custom_data, discountcode, discountamount')
                     .maybeSingle();
 
                 if (claimError || !claimedOrder) {
@@ -235,7 +235,7 @@ export async function POST(request: Request) {
                     // may still be missing (partial failure). Re-deliver if needed.
                     const { data: freshOrder } = await supabase
                       .from('orders')
-                      .select('*')
+                      .select('id, orderid, courseid, useremail, coursename, amount, status, paymentid, paymentmethod, created_at, updated_at, enrolled, enrollmentid, notes, custom_data, discountcode, discountamount')
                       .eq('orderid', orderId)
                       .maybeSingle();
 
@@ -272,7 +272,7 @@ export async function POST(request: Request) {
                             },
                           })
                           .eq('orderid', orderId)
-                          .select()
+                          .select('id, orderid, courseid, useremail, coursename, amount, status, paymentid, paymentmethod, created_at, updated_at, enrolled, enrollmentid, notes, custom_data, discountcode, discountamount')
                           .maybeSingle();
                         if (updated) repairedOrder = updated;
                       } else {

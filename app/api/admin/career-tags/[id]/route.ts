@@ -43,7 +43,7 @@ export async function PATCH(
 
   const { data: tag } = await supabaseAdmin
     .from('myuni_career_tags')
-    .select('*')
+    .select('id, slug, name, created_at')
     .eq('id', id)
     .single();
 

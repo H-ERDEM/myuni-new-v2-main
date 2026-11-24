@@ -4,7 +4,7 @@ import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Calendar, MapPin, Users, Clock, AlertCircle, GraduationCap, BookOpen, Target, Award, Star } from 'lucide-react';
-import { getPackageBySlug, mapLevelToLocale } from '../../../../../lib/courseService';
+import { mapLevelToLocale } from '../../../../../lib/courseService';
 import CourseHeroSection from './components/CourseHeroSection';
 import CourseMainContent from './components/CourseMainContent';
 import CourseSidebar from './components/CourseSidebar';
@@ -56,6 +56,8 @@ interface Course {
   session_duration_minutes?: number;
   max_participants?: number;
   learning_outcomes?: string[];
+  objectives?: string[];
+  requirements?: string[];
   banner_url?: string;
   thumbnail_url?: string;
   /** Shopier link ile satış: ürün ID (webhook eşleşmesi) */
@@ -287,7 +289,14 @@ export default function PackageDetailPage({ params }: CourseDetailPageProps) {
       setLoading(true);
       setError(null);
 
-      const courseData: any = await getPackageBySlug(courseSlug, courseLocale);
+      const response = await fetch(
+        `/api/public/packages/${encodeURIComponent(courseSlug)}?locale=${encodeURIComponent(courseLocale)}`
+      );
+      const payload = await response.json();
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error || 'Package not found');
+      }
+      const courseData: any = payload.package;
 
       console.log('🔍 PACKAGE DETAIL PAGE - Raw API Response:', courseData);
 
@@ -319,6 +328,13 @@ export default function PackageDetailPage({ params }: CourseDetailPageProps) {
         learning_outcomes: Array.isArray(courseData.learning_outcomes)
           ? courseData.learning_outcomes.map((outcome: unknown) => String(outcome))
           : undefined,
+        objectives: Array.isArray(courseData.learning_outcomes)
+          ? courseData.learning_outcomes.map((outcome: unknown) => String(outcome))
+          : [],
+        requirements: Array.isArray(courseData.prerequisites)
+          ? courseData.prerequisites.map((requirement: unknown) => String(requirement))
+          : [],
+        instructor_name: courseData.instructor_name ? String(courseData.instructor_name) : undefined,
         banner_url: courseData.banner_url ? String(courseData.banner_url) : undefined,
         thumbnail_url: courseData.thumbnail_url ? String(courseData.thumbnail_url) : undefined,
         shopier_product_id: courseData.shopier_product_id ? String(courseData.shopier_product_id) : undefined,
@@ -576,7 +592,9 @@ export default function PackageDetailPage({ params }: CourseDetailPageProps) {
             {/* Mobile Course Preview - All course types */}
             <div className="mb-4">
               <CourseHeroSection
+                course={courseDetail}
                 courseId={courseDetail?.id}
+                courseSlug={slug}
                 texts={componentTexts}
                 locale={locale}
               />
@@ -716,7 +734,9 @@ export default function PackageDetailPage({ params }: CourseDetailPageProps) {
             {courseDetail.course_type === 'online' && (
               <div>
                 <CourseHeroSection
+                  course={courseDetail}
                   courseId={courseDetail?.id}
+                  courseSlug={slug}
                   texts={componentTexts}
                   locale={locale}
                 />

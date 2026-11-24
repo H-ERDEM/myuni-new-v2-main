@@ -77,7 +77,7 @@ export async function resolveApplicationContext(
     } else if (options.contextId) {
       const { data } = await supabaseAdmin
         .from('myuni_opportunities')
-        .select('*')
+        .select('id, slug, title, description, company_name, location, work_mode, application_deadline, form_config_id, is_active, is_featured, order_index, created_at, updated_at, panel_organization_id, site_form_id, opportunity_type, created_by, banner_url, thumbnail_url')
         .eq('id', options.contextId)
         .eq('is_active', true)
         .maybeSingle();
@@ -199,7 +199,7 @@ export async function submitApplication(
       user_agent: input.userAgent || null,
       status: 'pending',
     })
-    .select()
+    .select('id, context_type, context_id, context_slug, context_title, form_config_id, user_id, applicant_email, submission_data, cv_storage_path, cv_file_name, status, admin_notes, reviewed_by, reviewed_by_email, reviewed_at, user_agent, created_at, updated_at')
     .single();
 
   if (error || !data) {
@@ -228,7 +228,7 @@ export async function getUserApplications(
 ) {
   let query = supabaseAdmin
     .from('myuni_applications')
-    .select('*')
+    .select('id, context_type, context_id, context_slug, context_title, form_config_id, user_id, applicant_email, submission_data, cv_storage_path, cv_file_name, status, admin_notes, reviewed_by, reviewed_by_email, reviewed_at, user_agent, created_at, updated_at')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
@@ -257,7 +257,7 @@ export async function listApplicationsForAdmin(filters: {
 
   let query = supabaseAdmin
     .from('myuni_applications')
-    .select('*')
+    .select('id, context_type, context_id, context_slug, context_title, form_config_id, user_id, applicant_email, submission_data, cv_storage_path, cv_file_name, status, admin_notes, reviewed_by, reviewed_by_email, reviewed_at, user_agent, created_at, updated_at')
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -332,7 +332,7 @@ async function enrichApplications(
 export async function getApplicationById(id: string) {
   const { data, error } = await supabaseAdmin
     .from('myuni_applications')
-    .select('*')
+    .select('id, context_type, context_id, context_slug, context_title, form_config_id, user_id, applicant_email, submission_data, cv_storage_path, cv_file_name, status, admin_notes, reviewed_by, reviewed_by_email, reviewed_at, user_agent, created_at, updated_at')
     .eq('id', id)
     .maybeSingle();
 
@@ -342,7 +342,7 @@ export async function getApplicationById(id: string) {
 
   const { data: history } = await supabaseAdmin
     .from('myuni_application_status_history')
-    .select('*')
+    .select('id, application_id, old_status, new_status, changed_by, changed_by_email, note, created_at')
     .eq('application_id', id)
     .order('created_at', { ascending: false });
 
@@ -360,7 +360,7 @@ export async function updateApplicationStatus(
 ) {
   const { data: existing, error: fetchError } = await supabaseAdmin
     .from('myuni_applications')
-    .select('*')
+    .select('id, context_type, context_id, context_slug, context_title, form_config_id, user_id, applicant_email, submission_data, cv_storage_path, cv_file_name, status, admin_notes, reviewed_by, reviewed_by_email, reviewed_at, user_agent, created_at, updated_at')
     .eq('id', id)
     .single();
 
@@ -388,7 +388,7 @@ export async function updateApplicationStatus(
     .from('myuni_applications')
     .update(patch)
     .eq('id', id)
-    .select()
+    .select('id, context_type, context_id, context_slug, context_title, form_config_id, user_id, applicant_email, submission_data, cv_storage_path, cv_file_name, status, admin_notes, reviewed_by, reviewed_by_email, reviewed_at, user_agent, created_at, updated_at')
     .single();
 
   if (updateError) {

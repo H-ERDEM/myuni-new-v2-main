@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin
       .from('discount_codes')
-      .select('*')
+      .select('id, code, discount_amount, discount_type, valid_until, applicable_courses, created_at, is_used, used_by, used_at, influencer_id, campaign_id, commission, is_referral, max_usage, usage_count, is_campaign, campaign_name, campaign_description, campaign_cover_image, campaign_slug, campaign_name_en, campaign_description_en, remaining_balance, has_balance_limit, owner_id, minimum_order_amount, full_course_only, maximum_order_amount, initial_balance')
       .order('created_at', { ascending: false })
       .limit(limit);
 
@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabaseAdmin
       .from('discount_codes')
       .insert(row)
-      .select()
+      .select('id, code, discount_amount, discount_type, valid_until, applicable_courses, created_at, is_used, used_by, used_at, influencer_id, campaign_id, commission, is_referral, max_usage, usage_count, is_campaign, campaign_name, campaign_description, campaign_cover_image, campaign_slug, campaign_name_en, campaign_description_en, remaining_balance, has_balance_limit, owner_id, minimum_order_amount, full_course_only, maximum_order_amount, initial_balance')
       .single();
 
     if (error) {

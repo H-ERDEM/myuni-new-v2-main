@@ -173,7 +173,7 @@ export default function MentorshipListPage({
     setLoading(true);
     try {
       const response = await fetch(
-        `/api/public/mentorships?locale=${encodeURIComponent(locale)}`,
+        `/api/public/mentorships?locale=${encodeURIComponent(locale)}&page=1&limit=100`,
         { cache: 'no-store' }
       );
       const payload = await response.json();

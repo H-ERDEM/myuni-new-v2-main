@@ -51,7 +51,7 @@ export async function POST() {
         .update({ user_id: clerkUserId, updated_at: new Date().toISOString() })
         .or(`contact_email.ilike.${normalizedEmail},backup_email.ilike.${normalizedEmail}`)
         .is('user_id', null)
-        .select();
+        .select('id, participant_name, contact_email, backup_email, subject, highlight_direction, general_score, comments, second_instructor_score, average_score, second_comments, user_id, created_at, updated_at');
 
       if (updateError) {
         console.error('Manual email matching error:', updateError);

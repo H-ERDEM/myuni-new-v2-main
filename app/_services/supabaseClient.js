@@ -12,7 +12,7 @@ export const dbHelpers = {
   async getCourse(courseId) {
     const { data, error } = await supabase
       .from('myuni_courses')
-      .select('*')
+      .select('id, slug, title, description, instructor_name, duration, level, price, original_price, thumbnail_url, banner_url, is_active, created_at, updated_at, instructor_description, instructor_email, instructor_linkedin, instructor_image_url, course_type, live_start_date, live_end_date, live_timezone, max_participants, current_participants, session_count, session_duration_minutes, registration_deadline, is_registration_open, early_bird_price, early_bird_deadline, shopier_product_id, shopier_product_url, program_type, is_featured')
       .eq('id', courseId)
       .eq('is_active', true)
       .single();
@@ -105,7 +105,7 @@ export const dbHelpers = {
   async getAllCourses(limit = null) {
     let query = supabase
       .from('myuni_courses')
-      .select('*')
+      .select('id, slug, title, description, instructor_name, duration, level, price, original_price, thumbnail_url, banner_url, is_active, created_at, updated_at, instructor_description, instructor_email, instructor_linkedin, instructor_image_url, course_type, live_start_date, live_end_date, live_timezone, max_participants, current_participants, session_count, session_duration_minutes, registration_deadline, is_registration_open, early_bird_price, early_bird_deadline, shopier_product_id, shopier_product_url, program_type, is_featured')
       .eq('is_active', true)
       .order('created_at', { ascending: false });
     
@@ -127,7 +127,7 @@ export const dbHelpers = {
   async getCourseBySlug(slug) {
     const { data, error } = await supabase
       .from('myuni_courses')
-      .select('*')
+      .select('id, slug, title, description, instructor_name, duration, level, price, original_price, thumbnail_url, banner_url, is_active, created_at, updated_at, instructor_description, instructor_email, instructor_linkedin, instructor_image_url, course_type, live_start_date, live_end_date, live_timezone, max_participants, current_participants, session_count, session_duration_minutes, registration_deadline, is_registration_open, early_bird_price, early_bird_deadline, shopier_product_id, shopier_product_url, program_type, is_featured')
       .eq('slug', slug)
       .eq('is_active', true)
       .single();
@@ -193,7 +193,7 @@ export const dbHelpers = {
     console.warn('[supabaseClient.getCourseStats] enrollment counts locked; returning course count only');
     const { count: totalCourses } = await supabase
       .from('myuni_courses')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('is_active', true);
 
     return {

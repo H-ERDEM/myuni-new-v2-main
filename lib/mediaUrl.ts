@@ -19,3 +19,18 @@ export function isSupabaseStorageUrl(url: string | null | undefined): boolean {
     url.includes('supabase.co/storage/v1/object/')
   );
 }
+
+export function toLearningPublicStorageUrl(
+  path: string | null | undefined,
+  bucket = 'myunilab'
+): string {
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path)) return path;
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_LEARNING_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    '';
+  if (!baseUrl) return path;
+  const normalizedPath = path.replace(/^\/+/, '');
+  return `${baseUrl.replace(/\/$/, '')}/storage/v1/object/public/${bucket}/${normalizedPath}`;
+}

@@ -5,8 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, BookOpen, FileText, Tag, ShoppingBag, Eye, Share2, Info } from 'lucide-react';
-import { notFound } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import ReactMarkdown from 'react-markdown';
 import AddToCartButton from '@/app/components/cart/AddToCartButton';
 
@@ -26,7 +24,6 @@ interface DigitalProduct {
   product_content: string | null;  // PDF / içerik URL
   brand_name: string | null;
   brand_logo_url: string | null;
-  product_info?: Record<string, unknown> | null;
   is_active: boolean;
   created_at: string;
 }
@@ -120,15 +117,14 @@ export default function CollectionDetailPage({
         setLoading(true);
         setCheckingPurchase(true);
 
-        const { data, error } = await supabase
-          .from('myuni_products')
-          .select('*')
-          .eq('is_active', true)
-          .eq('slug', slug)
-          .single();
-
-        if (error || !data) { notFound(); return; }
-        setProduct(data as DigitalProduct);
+        const productResponse = await fetch(`/api/public/products/${encodeURIComponent(slug)}`);
+        const productPayload = await productResponse.json();
+        if (!productResponse.ok || !productPayload.success || !productPayload.product) {
+          router.replace(`/${locale}/collection`);
+          return;
+        }
+        const data = productPayload.product as DigitalProduct;
+        setProduct(data);
 
         // Ürün yüklendikten hemen sonra satın alım kontrolü
         const res = await fetch(`/api/collection/check-purchase?product_id=${data.id}`);
@@ -137,14 +133,14 @@ export default function CollectionDetailPage({
 
       } catch (err) {
         console.error('Product load error:', err);
-        notFound();
+        router.replace(`/${locale}/collection`);
       } finally {
         setLoading(false);
         setCheckingPurchase(false);
       }
     }
     loadProductAndCheckPurchase();
-  }, [slug]);
+  }, [locale, router, slug]);
 
   // Ürnü incelemeye gönder (satın alınmış veya ücretsiz)
   const handleView = () => {
@@ -351,15 +347,6 @@ export default function CollectionDetailPage({
                       </span>
                     </div>
 
-                    {product.product_info && Object.entries(product.product_info).map(([key, value]) => {
-                      if (key.toLowerCase() === 'brand' || key.toLowerCase() === 'provider' || key.toLowerCase() === 'marka' || key.toLowerCase() === 'sağlayıcı') return null;
-                      return (
-                        <div key={key} className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-neutral-700/50">
-                          <span className="text-gray-500 dark:text-gray-400 capitalize">{key.replace('_', ' ')}</span>
-                          <span className="font-medium text-gray-900 dark:text-white">{String(value)}</span>
-                        </div>
-                      );
-                    })}
                   </div>
                 </div>
 

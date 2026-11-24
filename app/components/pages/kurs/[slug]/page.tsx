@@ -4,7 +4,7 @@ import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Calendar, MapPin, Users, Clock, AlertCircle, GraduationCap, BookOpen, Target, Award, Star } from 'lucide-react';
-import { getCourseBySlug, getCourseTiers, mapLevelToLocale } from '../../../../../lib/courseService';
+import { mapLevelToLocale } from '../../../../../lib/courseService';
 import CourseHeroSection from './components/CourseHeroSection';
 import CourseMainContent from './components/CourseMainContent';
 import CourseSidebar from './components/CourseSidebar';
@@ -57,6 +57,8 @@ interface Course {
   session_duration_minutes?: number;
   max_participants?: number;
   learning_outcomes?: string[];
+  objectives?: Array<{ id: string; objective_text: string; order_index: number }>;
+  requirements?: Array<{ id: string; requirement_text: string; order_index: number }>;
   banner_url?: string;
   thumbnail_url?: string;
   /** Shopier link ile satış: ürün ID (webhook eşleşmesi) */
@@ -138,6 +140,8 @@ interface APICourseResponse {
   session_duration_minutes?: unknown;
   max_participants?: unknown;
   learning_outcomes?: unknown[];
+  objectives?: Array<{ id: string; objective_text: string; order_index: number }>;
+  requirements?: Array<{ id: string; requirement_text: string; order_index: number }>;
   banner_url?: unknown;
   thumbnail_url?: unknown;
   shopier_product_id?: unknown;
@@ -287,7 +291,14 @@ export default function CourseDetailPage({ params, initialTiers = [] }: CourseDe
       setLoading(true);
       setError(null);
 
-      const courseData: APICourseResponse | null = await getCourseBySlug(courseSlug, courseLocale);
+      const response = await fetch(
+        `/api/public/courses/${encodeURIComponent(courseSlug)}?locale=${encodeURIComponent(courseLocale)}`
+      );
+      const payload = await response.json();
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error || 'Course not found');
+      }
+      const courseData = payload.course as APICourseResponse;
 
       console.log('🔍 COURSE DETAIL PAGE - Raw API Response:', courseData);
       console.log('🔍 COURSE DETAIL PAGE - Early bird price from API:', courseData?.early_bird_price);
@@ -321,6 +332,13 @@ export default function CourseDetailPage({ params, initialTiers = [] }: CourseDe
         learning_outcomes: Array.isArray(courseData.learning_outcomes)
           ? courseData.learning_outcomes.map(outcome => String(outcome))
           : undefined,
+        objectives: Array.isArray(courseData.objectives) ? courseData.objectives : [],
+        requirements: Array.isArray(courseData.requirements) ? courseData.requirements : [],
+        instructor_name: courseData.instructor_name ? String(courseData.instructor_name) : undefined,
+        instructor_description: courseData.instructor_description ? String(courseData.instructor_description) : undefined,
+        instructor_email: courseData.instructor_email ? String(courseData.instructor_email) : undefined,
+        instructor_linkedin: courseData.instructor_linkedin ? String(courseData.instructor_linkedin) : undefined,
+        instructor_image_url: courseData.instructor_image_url ? String(courseData.instructor_image_url) : undefined,
         banner_url: courseData.banner_url ? String(courseData.banner_url) : undefined,
         thumbnail_url: courseData.thumbnail_url ? String(courseData.thumbnail_url) : undefined,
         shopier_product_id: courseData.shopier_product_id ? String(courseData.shopier_product_id) : undefined,
@@ -579,7 +597,9 @@ export default function CourseDetailPage({ params, initialTiers = [] }: CourseDe
             {/* Mobile Course Preview - All course types */}
             <div className="mb-4">
               <CourseHeroSection
+                course={courseDetail}
                 courseId={courseDetail?.id}
+                courseSlug={slug}
                 texts={componentTexts}
                 locale={locale}
               />
@@ -720,7 +740,9 @@ export default function CourseDetailPage({ params, initialTiers = [] }: CourseDe
             {courseDetail.course_type === 'online' && (
               <div>
                 <CourseHeroSection
+                  course={courseDetail}
                   courseId={courseDetail?.id}
+                  courseSlug={slug}
                   texts={componentTexts}
                   locale={locale}
                 />

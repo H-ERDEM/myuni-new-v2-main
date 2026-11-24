@@ -4,9 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Linkedin, Mail, Lock, Edit2, Trash2, X, Check } from 'lucide-react';
 import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
-import { getLearningSupabaseClient } from '@/lib/supabase/databases';
-
-const supabase = getLearningSupabaseClient();
+import { toLearningPublicStorageUrl } from '@/lib/mediaUrl';
 
 interface CourseObjective {
   id: string;
@@ -50,6 +48,8 @@ interface Course {
   rating?: number;
   students?: number;
   course_type?: 'online' | 'live' | 'hybrid';
+  objectives?: string[];
+  requirements?: string[];
 }
 
 interface CourseMainContentTexts {
@@ -134,27 +134,17 @@ const CourseMainContent: React.FC<CourseMainContentProps> = ({
         setLoading(true);
         setError(null);
 
-        const { data: packageData, error: packageError } = await supabase
-          .from('myuni_packages')
-          .select('*')
-          .eq('slug', courseSlug)
-          .eq('is_active', true)
-          .single();
-
-        if (packageError) {
-          throw new Error('Paket bulunamadı');
-        }
-
-        setCourse(packageData);
+        if (!propCourse) throw new Error('Paket bulunamadı');
+        setCourse(propCourse);
 
         // myuni_packages uses jsonb for objectives and requirements
-        const objData = Array.isArray(packageData.objectives) 
-          ? packageData.objectives.map((text: string, index: number) => ({ id: String(index), objective_text: text, order_index: index }))
+        const objData = Array.isArray(propCourse.objectives)
+          ? propCourse.objectives.map((text: string, index: number) => ({ id: String(index), objective_text: text, order_index: index }))
           : [];
         setObjectives(objData);
 
-        const reqData = Array.isArray(packageData.requirements)
-          ? packageData.requirements.map((text: string, index: number) => ({ id: String(index), requirement_text: text, order_index: index }))
+        const reqData = Array.isArray(propCourse.requirements)
+          ? propCourse.requirements.map((text: string, index: number) => ({ id: String(index), requirement_text: text, order_index: index }))
           : [];
         setRequirements(reqData);
 
@@ -165,10 +155,10 @@ const CourseMainContent: React.FC<CourseMainContentProps> = ({
       }
     };
 
-    if (courseSlug) {
+    if (courseSlug && propCourse) {
       fetchCourseData();
     }
-  }, [courseSlug]);
+  }, [courseSlug, propCourse]);
 
   // Yorumları getir
   useEffect(() => {
@@ -289,12 +279,7 @@ const CourseMainContent: React.FC<CourseMainContentProps> = ({
       return imagePath;
     }
     
-    // Supabase storage URL'ini oluştur
-    const { data } = supabase.storage
-      .from('myunilab')
-      .getPublicUrl(imagePath);
-    
-    return data.publicUrl;
+    return toLearningPublicStorageUrl(imagePath);
   };
 
   const getTextLength = (htmlContent: string | undefined) => {

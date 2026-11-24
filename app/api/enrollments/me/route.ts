@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabaseAdmin
       .from('myuni_enrollments')
-      .select('*')
+      .select('id, user_id, course_id, enrolled_at, progress_percentage, is_active, welcome_shown, tier_id')
       .eq('user_id', userId)
       .eq('is_active', true)
       .order('enrolled_at', { ascending: false });
@@ -74,7 +74,10 @@ export async function GET(request: NextRequest) {
 
     const courseIds = [...new Set((data || []).map((row) => row.course_id as string))];
     const { data: courses, error: courseError } = courseIds.length
-      ? await supabaseAdmin.from('myuni_courses').select('*').in('id', courseIds)
+      ? await supabaseAdmin
+          .from('myuni_courses')
+          .select('id, slug, title, description, thumbnail_url, banner_url, level, is_active')
+          .in('id', courseIds)
       : { data: [], error: null };
 
     if (courseError) {

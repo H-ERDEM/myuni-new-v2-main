@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     const { count: currentCount, error: countError } = await supabaseAdmin
       .from('myuni_event_enrollments')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('event_id', eventId);
 
     if (countError) {
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
           notes: `Registered via API on ${new Date().toISOString()} | consent:${JSON.stringify(legalConsent)}`,
         },
       ])
-      .select()
+      .select('id, user_id, event_id, enrolled_at, attendance_status, notes, welcome_shown')
       .single();
 
     if (enrollError) {

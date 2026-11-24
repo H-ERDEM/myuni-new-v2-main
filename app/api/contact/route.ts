@@ -853,7 +853,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('unilab_vision_contact_submissions')
       .insert([submissionData])
-      .select()
+      .select('id')
       .single();
 
     if (error) {

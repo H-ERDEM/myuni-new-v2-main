@@ -13,7 +13,7 @@ export async function GET() {
 
     let { data, error } = await supabaseAdmin
       .from('myuni_products_purchases')
-      .select('*, product:myuni_products(id, title, slug, thumbnail_url, product_type, price)')
+      .select('id, user_id, product_id, price_paid, purchased_at, product:myuni_products(id, title, slug, thumbnail_url, product_type, price)')
       .eq('user_id', userId)
       .order('purchased_at', { ascending: false });
 
@@ -22,7 +22,7 @@ export async function GET() {
       if (verifiedEmails.length) {
         const emailResult = await supabaseAdmin
           .from('myuni_products_purchases')
-          .select('*, product:myuni_products(id, title, slug, thumbnail_url, product_type, price)')
+          .select('id, user_id, product_id, price_paid, purchased_at, product:myuni_products(id, title, slug, thumbnail_url, product_type, price)')
           .in('user_id', verifiedEmails)
           .order('purchased_at', { ascending: false });
         data = emailResult.data;

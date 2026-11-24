@@ -138,7 +138,7 @@ async function getFormConfig(formName: string): Promise<FormConfig | null> {
   try {
     const { data, error } = await supabase
       .from('unilab_vision_form_configs')
-      .select('*')
+      .select('id, form_name, title, subtitle, submit_button_text, success_message, privacy_notice, terms_and_conditions, is_active, created_at, updated_at')
       .eq('form_name', formName)
       .eq('is_active', true)
       .single();
@@ -160,7 +160,7 @@ async function getFormFields(configId: string): Promise<FormField[]> {
   try {
     const { data, error } = await supabase
       .from('unilab_vision_form_fields')
-      .select('*')
+      .select('id, form_config_id, field_key, field_type, label, placeholder, is_required, validation_rules, options, sort_order, grid_columns, is_active, created_at, updated_at')
       .eq('form_config_id', configId)
       .eq('is_active', true)
       .order('sort_order', { ascending: true });

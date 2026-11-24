@@ -33,7 +33,7 @@ export default async function HomePage({ params }: HomePageProps) {
   try {
     const { count, error } = await supabase
       .from('myuni_courses')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('is_active', true);
 
     if (!error && count !== null) {

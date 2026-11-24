@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import { Clock, Users, Play, CheckCircle, Book, TrendingUp, Award, Download, Calendar, MapPin, Trophy, X, Copy, ChevronDown, ShoppingBag } from 'lucide-react';
-import { getCourseCompletionStats } from '../../../lib/courseService';
 import { useUser } from '@clerk/nextjs';
 import { useParams, useSearchParams } from 'next/navigation';
 import DashboardOpportunitiesTab from '../../components/dashboard/DashboardOpportunitiesTab';
@@ -573,34 +572,9 @@ function DashboardContent({ locale }: { locale: string }) {
         setEnrollments([]);
         console.log('No enrollments found');
       } else {
-        // Her enrollment için progress hesapla
-        const enrollmentsWithProgress = await Promise.all(
-          enrollmentsData.map(async (enrollment: { course_id: string; [key: string]: unknown }) => {
-            try {
-              console.log(`Calculating progress for course: ${enrollment.course_id}`);
-              
-              // Course completion stats'ını al
-              const completionStats = await getCourseCompletionStats(userId, enrollment.course_id);
-              
-              console.log(`Course ${enrollment.course_id} progress:`, completionStats);
-              
-              return {
-                ...enrollment,
-                progress_percentage: completionStats.completionPercentage || 0,
-                completion_stats: completionStats
-              };
-            } catch (progressError) {
-              console.error(`Error calculating progress for course ${enrollment.course_id}:`, progressError);
-              return {
-                ...enrollment,
-                progress_percentage: 0
-              };
-            }
-          })
-        );
-        
-        console.log('7. Enrollments with calculated progress:', enrollmentsWithProgress);
-        setEnrollments(enrollmentsWithProgress);
+        // API enrollment kaydındaki güncel progress_percentage değerini döndürür.
+        // Her kurs için yeniden lessons + progress sorgusu çalıştırmak N+1 üretirdi.
+        setEnrollments(enrollmentsData);
       }
       
     } catch (err) {

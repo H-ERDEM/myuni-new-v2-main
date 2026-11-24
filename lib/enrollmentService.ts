@@ -196,7 +196,7 @@ export async function enrollUserInCourse(userId: string, courseId: string): Prom
     const { data: enrollment, error: enrollError } = await supabase
       .from('myuni_enrollments')
       .insert(enrollmentData)
-      .select('*')
+      .select('id, user_id, course_id, enrolled_at, progress_percentage, is_active, welcome_shown')
       .single();
 
     console.log('Insert result:', { enrollment, enrollError });
@@ -270,7 +270,7 @@ export async function getUserEnrollments(userId: string): Promise<UserEnrollment
 
     const { data, error } = await supabase
       .from('myuni_enrollments')
-      .select('*')
+      .select('id, user_id, course_id, enrolled_at, progress_percentage, is_active, welcome_shown')
       .eq('user_id', userId)
       .eq('is_active', true)
       .order('enrolled_at', { ascending: false });
@@ -282,7 +282,10 @@ export async function getUserEnrollments(userId: string): Promise<UserEnrollment
 
     const courseIds = [...new Set((data || []).map((row) => row.course_id as string))];
     const { data: courses, error: coursesError } = courseIds.length
-      ? await supabase.from('myuni_courses').select('*').in('id', courseIds)
+      ? await supabase
+          .from('myuni_courses')
+          .select('id, slug, title, description, price, thumbnail_url, banner_url, instructor_name, duration, level, is_active')
+          .in('id', courseIds)
       : { data: [], error: null };
 
     if (coursesError) {

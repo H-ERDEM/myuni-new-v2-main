@@ -16,8 +16,11 @@ export async function GET() {
       .from('myuni_event_enrollments')
       .select(
         `
-        *,
-        event:myuni_events(*)
+        id, user_id, event_id, enrolled_at, attendance_status, welcome_shown, notes,
+        event:myuni_events(
+          id, slug, title, description, organizer_name, start_date, is_online,
+          location_name, thumbnail_url, banner_url, status
+        )
       `
       )
       .eq('user_id', userId)

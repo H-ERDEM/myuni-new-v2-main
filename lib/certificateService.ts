@@ -175,10 +175,11 @@ async function checkCertificateException(userId: string, itemId: string, itemTyp
 
     const { data, error } = await supabase
       .from('myuni_certificate_exceptions')
-      .select('*')
+      .select('id')
       .eq('user_id', userId)
       .eq('course_id', itemId) // item_id yerine course_id kullanıyoruz
-      .eq('is_active', true);
+      .eq('is_active', true)
+      .limit(1);
 
     console.log('📊 İstisna sorgu sonucu:', { data, error });
 
@@ -316,7 +317,7 @@ export async function checkEventCertificateEligibility(
       try {
         const { data: existingCert, error: certError } = await supabase
           .from('myuni_event_certificates')
-          .select('*')
+          .select('id, certificate_number, user_id, event_id, student_full_name, event_name, organizer_name, event_duration, organization_name, organization_description, organizer_bio, issue_date, certificate_url, is_active, created_at, updated_at, certificate_metadata')
           .eq('user_id', userId)
           .eq('event_id', eventId)
           .eq('is_active', true)
@@ -353,7 +354,7 @@ export async function checkEventCertificateEligibility(
     try {
       const { data: existingCert, error: certError } = await supabase
         .from('myuni_event_certificates')
-        .select('*')
+        .select('id, certificate_number, user_id, event_id, student_full_name, event_name, organizer_name, event_duration, organization_name, organization_description, organizer_bio, issue_date, certificate_url, is_active, created_at, updated_at, certificate_metadata')
         .eq('user_id', userId)
         .eq('event_id', eventId)
         .eq('is_active', true)
@@ -457,7 +458,7 @@ async function checkItemCertificateEligibility(userId: string, itemId: string, i
       try {
         const { data: existingCert, error: certError } = await supabase
           .from('myuni_certificates')
-          .select('*')
+          .select('id, certificate_number, user_id, course_id, student_full_name, course_name, instructor_name, course_duration, organization_name, organization_description, instructor_bio, issue_date, certificate_url, is_active, created_at, updated_at, certificate_metadata')
           .eq('user_id', userId)
           .eq('course_id', itemId)
           .eq('is_active', true)
@@ -492,7 +493,7 @@ async function checkItemCertificateEligibility(userId: string, itemId: string, i
     try {
       const { data: existingCert, error: certError } = await supabase
         .from('myuni_certificates')
-        .select('*')
+        .select('id, certificate_number, user_id, course_id, student_full_name, course_name, instructor_name, course_duration, organization_name, organization_description, instructor_bio, issue_date, certificate_url, is_active, created_at, updated_at, certificate_metadata')
         .eq('user_id', userId)
         .eq('course_id', itemId)
         .eq('is_active', true)
@@ -567,7 +568,7 @@ async function checkItemCertificateEligibility(userId: string, itemId: string, i
       // Kullanıcı ilerlemesini al
       const { data: progressData, error: progressError } = await supabase
         .from('myuni_user_progress')
-        .select('*')
+        .select('lesson_id, is_completed, quiz_score, quiz_attempts')
         .eq('user_id', userId)
         .in('lesson_id', lessons.map(l => l.id));
 
@@ -788,7 +789,7 @@ export async function generateCertificate(data: CertificateData, verifiedUserEma
         const eventResponse = await supabase
           .from('myuni_event_certificates')
           .insert(eventCertificateData)
-          .select()
+          .select('id, certificate_number, user_id, event_id, student_full_name, event_name, organizer_name, event_duration, organization_name, organization_description, organizer_bio, issue_date, certificate_url, is_active, created_at, updated_at, certificate_metadata')
           .single();
 
         if (eventResponse.error) {
@@ -822,7 +823,7 @@ export async function generateCertificate(data: CertificateData, verifiedUserEma
         const courseResponse = await supabase
           .from('myuni_certificates')
           .insert(courseCertificateData)
-          .select()
+          .select('id, certificate_number, user_id, course_id, student_full_name, course_name, instructor_name, course_duration, organization_name, organization_description, instructor_bio, issue_date, certificate_url, is_active, created_at, updated_at, certificate_metadata')
           .single();
 
         if (courseResponse.error) {
@@ -920,7 +921,7 @@ export async function generateCertificate(data: CertificateData, verifiedUserEma
       const publicResponse = await supabase
         .from('certificates')
         .insert(publicCertificateData)
-        .select()
+        .select('id, certificatenumber, fullname, coursename, issuedate, certificateurl, organization, created_at, updated_at, instructor, duration, instructor_bio, organization_description, course_images, course_logo, language, certificate_title, provider_text, instructor_label, date_label, certificate_number_label, qr_scan_text, total_hours_label, completion_text, organization_slug, skills_label, template_id, description')
         .single();
 
       if (publicResponse.error) {
@@ -1004,7 +1005,7 @@ export async function getUserCertificate(userId: string, courseId: string) {
   try {
     const { data, error } = await supabase
       .from('myuni_certificates')
-      .select('*')
+      .select('id, certificate_number, user_id, course_id, student_full_name, course_name, instructor_name, course_duration, organization_name, organization_description, instructor_bio, issue_date, certificate_url, is_active, created_at, updated_at, certificate_metadata')
       .eq('user_id', userId)
       .eq('course_id', courseId)
       .eq('is_active', true)
@@ -1027,7 +1028,7 @@ export async function getUserEventCertificate(userId: string, eventId: string) {
   try {
     const { data, error } = await supabase
       .from('myuni_event_certificates')
-      .select('*')
+      .select('id, certificate_number, user_id, event_id, student_full_name, event_name, organizer_name, event_duration, organization_name, organization_description, organizer_bio, issue_date, certificate_url, is_active, created_at, updated_at, certificate_metadata')
       .eq('user_id', userId)
       .eq('event_id', eventId)
       .eq('is_active', true)
@@ -1060,7 +1061,7 @@ export async function getCertificateByNumber(certificateNumber: string) {
   try {
     const { data, error } = await supabase
       .from('certificates')
-      .select('*')
+      .select('id, certificatenumber, fullname, coursename, issuedate, certificateurl, organization, created_at, updated_at, instructor, duration, instructor_bio, organization_description, course_images, course_logo, language, certificate_title, provider_text, instructor_label, date_label, certificate_number_label, qr_scan_text, total_hours_label, completion_text, organization_slug, skills_label, template_id, description')
       .eq('certificatenumber', certificateNumber)
       .single();
 
@@ -1081,7 +1082,7 @@ export async function getMyUNICertificateByNumber(certificateNumber: string) {
   try {
     const { data, error } = await supabase
       .from('myuni_certificates')
-      .select('*')
+      .select('id, certificate_number, user_id, course_id, student_full_name, course_name, instructor_name, course_duration, organization_name, organization_description, instructor_bio, issue_date, certificate_url, is_active, created_at, updated_at, certificate_metadata')
       .eq('certificate_number', certificateNumber)
       .eq('is_active', true)
       .single();
@@ -1103,7 +1104,7 @@ export async function getMyUNIEventCertificateByNumber(certificateNumber: string
   try {
     const { data, error } = await supabase
       .from('myuni_event_certificates')
-      .select('*')
+      .select('id, certificate_number, user_id, event_id, student_full_name, event_name, organizer_name, event_duration, organization_name, organization_description, organizer_bio, issue_date, certificate_url, is_active, created_at, updated_at, certificate_metadata')
       .eq('certificate_number', certificateNumber)
       .eq('is_active', true)
       .single();
@@ -1237,7 +1238,7 @@ async function getUserItemCertificateException(userId: string, itemId: string, i
 
     const { data, error } = await supabase
       .from('myuni_certificate_exceptions')
-      .select('*')
+      .select('id, user_id, course_id, granted_by, reason, created_at, is_active')
       .eq('user_id', userId)
       .eq('course_id', itemId) // item_id yerine course_id kullanıyoruz
       .eq('is_active', true);

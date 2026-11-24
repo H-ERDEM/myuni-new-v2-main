@@ -23,7 +23,7 @@ async function getStatsContent(locale: string) {
     // Database sorgusu
     const { data, error } = await supabase
       .from('stats_content')
-      .select('*')
+      .select('title, subtitle, description, stats, ctabutton, ctalink')
       .eq('locale', locale)
       .single();
 

@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { auth, currentUser } from '@clerk/nextjs/server';
+import { paginationMetadata, parsePagination } from '@/lib/api/pagination';
 
 // Basit spam kontrolü
 function isSpam(content: string): boolean {
@@ -41,22 +42,27 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const postId = searchParams.get('postId');
   const status = searchParams.get('status') || 'approved';
+  const { page, limit, from, to } = parsePagination(searchParams);
 
   if (!postId) {
     return NextResponse.json({ error: 'Post ID required' }, { status: 400 });
   }
 
   try {
-    const { data, error } = await supabase
+    const { data, error, count } = await supabase
       .from('blog_comments')
-      .select('*')
+      .select('id, post_id, user_id, user_name, content, locale, status, created_at', { count: 'exact' })
       .eq('post_id', postId)
       .eq('status', status)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
     if (error) throw error;
 
-    return NextResponse.json({ comments: data });
+    return NextResponse.json({
+      comments: data,
+      pagination: paginationMetadata(page, limit, count || 0),
+    });
   } catch (error) {
     console.error('Error fetching comments:', error);
     return NextResponse.json({ error: 'Failed to fetch comments' }, { status: 500 });
@@ -198,7 +204,7 @@ export async function POST(request: Request) {
           status: 'approved' // Spam değilse otomatik onayla
         }
       ])
-      .select()
+      .select('id, post_id, user_id, user_name, content, locale, status, created_at')
       .single();
 
     if (error) {
